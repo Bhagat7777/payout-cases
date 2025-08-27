@@ -4,24 +4,39 @@ export interface Database {
       profiles: {
         Row: {
           id: string
-          handle: string | null
-          role: "user" | "moderator" | "admin"
+          username: string | null
+          full_name: string | null
           avatar_url: string | null
-          created_at: string
+          role: string | null
+          created_at: string | null
+          updated_at: string | null
+          is_challenge_completed: boolean | null
+          is_disqualified: boolean | null
+          admin_notes: string | null
         }
         Insert: {
           id: string
-          handle?: string | null
-          role?: "user" | "moderator" | "admin"
+          username?: string | null
+          full_name?: string | null
           avatar_url?: string | null
-          created_at?: string
+          role?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+          is_challenge_completed?: boolean | null
+          is_disqualified?: boolean | null
+          admin_notes?: string | null
         }
         Update: {
           id?: string
-          handle?: string | null
-          role?: "user" | "moderator" | "admin"
+          username?: string | null
+          full_name?: string | null
           avatar_url?: string | null
-          created_at?: string
+          role?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+          is_challenge_completed?: boolean | null
+          is_disqualified?: boolean | null
+          admin_notes?: string | null
         }
       }
       firms: {
@@ -30,30 +45,33 @@ export interface Database {
           name: string
           slug: string
           logo_url: string | null
-          website: string | null
-          country: string | null
+          website_url: string | null
+          headquarters: string | null
           description: string | null
-          created_at: string
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: string
           name: string
           slug: string
           logo_url?: string | null
-          website?: string | null
-          country?: string | null
+          website_url?: string | null
+          headquarters?: string | null
           description?: string | null
-          created_at?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: string
           name?: string
           slug?: string
           logo_url?: string | null
-          website?: string | null
-          country?: string | null
+          website_url?: string | null
+          headquarters?: string | null
           description?: string | null
-          created_at?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
       }
       cases: {
@@ -68,7 +86,7 @@ export interface Database {
           evidence_urls: string[] | null
           submitted_by: string | null
           workflow_status: "submitted" | "under_review" | "published" | "rejected"
-          created_at: string
+          created_at: string | null
           published_at: string | null
         }
         Insert: {
@@ -82,7 +100,7 @@ export interface Database {
           evidence_urls?: string[] | null
           submitted_by?: string | null
           workflow_status?: "submitted" | "under_review" | "published" | "rejected"
-          created_at?: string
+          created_at?: string | null
           published_at?: string | null
         }
         Update: {
@@ -96,53 +114,49 @@ export interface Database {
           evidence_urls?: string[] | null
           submitted_by?: string | null
           workflow_status?: "submitted" | "under_review" | "published" | "rejected"
-          created_at?: string
+          created_at?: string | null
           published_at?: string | null
         }
       }
       firms_agg: {
         Row: {
           firm_id: string
-          approvals_7d: number
-          approvals_30d: number
-          approvals_total: number
-          denials_7d: number
-          denials_30d: number
-          denials_total: number
-          ratings_count: number
-          rating_sum: number
-          avg_rating: number
+          approvals_7d: number | null
+          approvals_30d: number | null
+          approvals_total: number | null
+          denials_7d: number | null
+          denials_30d: number | null
+          denials_total: number | null
+          avg_rating: number | null
           approval_rate_30d: number | null
+          ranking_score: number | null
           last_case_at: string | null
-          ranking_score: number
         }
         Insert: {
           firm_id: string
-          approvals_7d?: number
-          approvals_30d?: number
-          approvals_total?: number
-          denials_7d?: number
-          denials_30d?: number
-          denials_total?: number
-          ratings_count?: number
-          rating_sum?: number
+          approvals_7d?: number | null
+          approvals_30d?: number | null
+          approvals_total?: number | null
+          denials_7d?: number | null
+          denials_30d?: number | null
+          denials_total?: number | null
+          avg_rating?: number | null
           approval_rate_30d?: number | null
+          ranking_score?: number | null
           last_case_at?: string | null
-          ranking_score?: number
         }
         Update: {
           firm_id?: string
-          approvals_7d?: number
-          approvals_30d?: number
-          approvals_total?: number
-          denials_7d?: number
-          denials_30d?: number
-          denials_total?: number
-          ratings_count?: number
-          rating_sum?: number
+          approvals_7d?: number | null
+          approvals_30d?: number | null
+          approvals_total?: number | null
+          denials_7d?: number | null
+          denials_30d?: number | null
+          denials_total?: number | null
+          avg_rating?: number | null
           approval_rate_30d?: number | null
+          ranking_score?: number | null
           last_case_at?: string | null
-          ranking_score?: number
         }
       }
     }

@@ -12,25 +12,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import Link from "next/link"
 import { createBrowserClient } from "@/lib/supabase/client"
 import { subscribeToFirmUpdates } from "@/lib/queries/firms"
+import type { Database } from "@/lib/supabase/types"
 
-interface Firm {
-  id: string
-  name: string
-  slug: string
-  logo_url: string | null
-  website: string | null
-  country: string | null
-  description: string | null
-  firms_agg?: {
-    approvals_30d: number
-    denials_30d: number
-    approvals_total: number
-    denials_total: number
-    avg_rating: number
-    ratings_count: number
-    approval_rate_30d: number | null
-    ranking_score: number
-  } | null
+type Firm = Database["public"]["Tables"]["firms"]["Row"] & {
+  firms_agg?: Database["public"]["Tables"]["firms_agg"]["Row"] | null
 }
 
 type SortOption = "top-ranked" | "top-rated" | "most-approvals" | "least-denials" | "trending"
@@ -69,7 +54,6 @@ export default function FirmsPage() {
               approvals_total,
               denials_total,
               avg_rating,
-              ratings_count,
               approval_rate_30d,
               ranking_score
             )
@@ -109,7 +93,7 @@ export default function FirmsPage() {
     const filtered = firms.filter(
       (firm) =>
         firm.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        firm.country?.toLowerCase().includes(searchQuery.toLowerCase()),
+        (firm.headquarters && firm.headquarters.toLowerCase().includes(searchQuery.toLowerCase()))
     )
 
     // Sort based on selected option
@@ -123,15 +107,15 @@ export default function FirmsPage() {
 
       switch (sortBy) {
         case "top-ranked":
-          return bAgg.ranking_score - aAgg.ranking_score
+          return (bAgg.ranking_score || 0) - (aAgg.ranking_score || 0)
         case "top-rated":
-          return bAgg.avg_rating - aAgg.avg_rating
+          return (bAgg.avg_rating || 0) - (aAgg.avg_rating || 0)
         case "most-approvals":
-          return bAgg.approvals_30d - aAgg.approvals_30d
+          return (bAgg.approvals_30d || 0) - (aAgg.approvals_30d || 0)
         case "least-denials":
-          return aAgg.denials_30d - bAgg.denials_30d
+          return (aAgg.denials_30d || 0) - (bAgg.denials_30d || 0)
         case "trending":
-          return bAgg.approvals_30d - aAgg.approvals_30d // Simplified trending logic
+          return (bAgg.approvals_30d || 0) - (aAgg.approvals_30d || 0) // Simplified trending logic
         default:
           return 0
       }
@@ -173,12 +157,12 @@ export default function FirmsPage() {
                   <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
                     {firm.name}
                   </h3>
-                  <p className="text-sm text-gray-500">{firm.country}</p>
+                  <p className="text-sm text-gray-500">{firm.headquarters}</p>
                 </div>
               </div>
-              {firm.website && (
+              {firm.website_url && (
                 <Button variant="ghost" size="sm" asChild>
-                  <a href={firm.website} target="_blank" rel="noopener noreferrer">
+                  <a href={firm.website_url} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="w-4 h-4" />
                   </a>
                 </Button>
@@ -188,14 +172,16 @@ export default function FirmsPage() {
             {agg && (
               <>
                 <div className="flex items-center space-x-1 mb-3">
-                  {renderStars(agg.avg_rating)}
+                  {renderStars(agg.avg_rating || 0)}
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
-                        <span className="text-sm font-medium text-gray-700 ml-2">{agg.avg_rating.toFixed(1)}</span>
+                        <span className="text-sm font-medium text-gray-700 ml-2">
+                          {(agg.avg_rating || 0).toFixed(1)}
+                        </span>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>{agg.ratings_count} ratings</p>
+                        <p>{agg.approvals_total} ratings</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -203,21 +189,21 @@ export default function FirmsPage() {
 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{agg.approvals_30d}</div>
+                    <div className="text-2xl font-bold text-green-600">{agg.approvals_30d || 0}</div>
                     <div className="text-xs text-gray-500">Approvals (30d)</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-red-500">{agg.denials_30d}</div>
+                    <div className="text-2xl font-bold text-red-500">{agg.denials_30d || 0}</div>
                     <div className="text-xs text-gray-500">Denials (30d)</div>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between mb-4">
                   <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                    {agg.approval_rate_30d?.toFixed(1) || "0"}% Approval Rate
+                    {agg.approval_rate_30d ? `${agg.approval_rate_30d.toFixed(1)}%` : "N/A"} Approval Rate
                   </Badge>
                   <div className="text-sm text-gray-600">
-                    Score: <span className="font-semibold">{agg.ranking_score.toFixed(1)}</span>
+                    Score: <span className="font-semibold">{agg.ranking_score?.toFixed(1) || "N/A"}</span>
                   </div>
                 </div>
               </>
@@ -265,21 +251,23 @@ export default function FirmsPage() {
               >
                 {firm.name}
               </Link>
-              <p className="text-xs text-gray-500">{firm.country}</p>
+              <p className="text-xs text-gray-500">{firm.headquarters}</p>
             </div>
           </div>
         </td>
         <td className="px-6 py-4">
           {agg && (
             <div className="flex items-center space-x-1">
-              {renderStars(agg.avg_rating)}
+              {renderStars(agg.avg_rating || 0)}
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
-                    <span className="text-sm font-medium text-gray-700 ml-2">{agg.avg_rating.toFixed(1)}</span>
+                    <span className="text-sm font-medium text-gray-700 ml-2">
+                      {(agg.avg_rating || 0).toFixed(1)}
+                    </span>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{agg.ratings_count} ratings</p>
+                    <p>{agg.approvals_total} ratings</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -290,10 +278,12 @@ export default function FirmsPage() {
         <td className="px-6 py-4 text-sm font-medium text-red-500">{agg?.denials_30d || 0}</td>
         <td className="px-6 py-4">
           <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-            {agg?.approval_rate_30d?.toFixed(1) || "0"}%
+            {agg?.approval_rate_30d ? `${agg.approval_rate_30d.toFixed(1)}%` : "N/A"}
           </Badge>
         </td>
-        <td className="px-6 py-4 text-sm font-medium text-gray-900">{agg?.ranking_score.toFixed(1) || "0"}</td>
+        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+          {agg?.ranking_score?.toFixed(1) || "N/A"}
+        </td>
       </motion.tr>
     )
   }

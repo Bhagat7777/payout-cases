@@ -25,41 +25,31 @@ import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts"
+import { createBrowserClient } from "@/lib/supabase/client"
+import type { Database } from "@/lib/supabase/types"
 
-interface Firm {
-  id: string
-  name: string
-  slug: string
-  logo_url: string | null
-  website: string | null
-  country: string | null
-  description: string | null
-  approvals_today: number
-  approvals_7d: number
-  approvals_30d: number
-  approvals_total: number
-  denials_today: number
-  denials_7d: number
-  denials_30d: number
-  denials_total: number
-  avg_rating: number
-  ratings_count: number
-  approval_rate_30d: number
-  ranking_score: number
-  rank: number
-  last_case_at: string | null
+type Firm = Database["public"]["Tables"]["firms"]["Row"] & {
+  firms_agg?: Database["public"]["Tables"]["firms_agg"]["Row"] | null
 }
 
 interface Case {
   id: string
+  firm_id: string
   type: "approval" | "denial"
   payout_date: string
   rating: number
   title: string | null
   notes: string | null
-  evidence_urls: string[]
-  published_at: string
-  created_at: string
+  evidence_urls: string[] | null
+  submitted_by: string | null
+  workflow_status: "submitted" | "under_review" | "published" | "rejected"
+  created_at: string | null
+  published_at: string | null
+  firms: {
+    name: string
+    slug: string
+    logo_url: string | null
+  } | null
 }
 
 interface TimelineData {
@@ -73,96 +63,101 @@ interface RatingDistribution {
   count: number
 }
 
-// Mock data for demonstration
-const mockFirm: Firm = {
-  id: "1",
-  name: "FTMO",
-  slug: "ftmo",
-  logo_url: "/placeholder.svg?height=80&width=80",
-  website: "https://ftmo.com",
-  country: "Czech Republic",
-  description:
-    "FTMO is a leading prop trading firm that provides traders with the opportunity to trade with their capital after passing a comprehensive evaluation process. Known for transparent rules and reliable payouts.",
-  approvals_today: 12,
-  approvals_7d: 89,
-  approvals_30d: 245,
-  approvals_total: 1250,
-  denials_today: 1,
-  denials_7d: 8,
-  denials_30d: 12,
-  denials_total: 89,
-  avg_rating: 4.8,
-  ratings_count: 156,
-  approval_rate_30d: 95.3,
-  ranking_score: 8.7,
-  rank: 1,
-  last_case_at: "2024-01-15T10:30:00Z",
-}
-
-const mockCases: Case[] = [
-  {
-    id: "1",
-    type: "approval",
-    payout_date: "2024-01-15",
-    rating: 5,
-    title: "Quick payout received",
-    notes: "Received my payout within 24 hours as promised. Excellent service!",
-    evidence_urls: ["/placeholder.svg?height=200&width=300"],
-    published_at: "2024-01-15T10:30:00Z",
-    created_at: "2024-01-15T09:00:00Z",
-  },
-  {
-    id: "2",
-    type: "approval",
-    payout_date: "2024-01-14",
-    rating: 4,
-    title: "Smooth withdrawal process",
-    notes: "No issues with the withdrawal. Professional support team.",
-    evidence_urls: ["/placeholder.svg?height=200&width=300"],
-    published_at: "2024-01-14T15:45:00Z",
-    created_at: "2024-01-14T14:20:00Z",
-  },
-  {
-    id: "3",
-    type: "denial",
-    payout_date: "2024-01-13",
-    rating: 2,
-    title: "Payout denied due to rule violation",
-    notes: "They claimed I violated a rule but the explanation wasn't clear.",
-    evidence_urls: ["/placeholder.svg?height=200&width=300"],
-    published_at: "2024-01-13T09:20:00Z",
-    created_at: "2024-01-13T08:00:00Z",
-  },
-]
-
-const mockTimelineData: TimelineData[] = [
-  { date: "2024-01-09", approvals: 8, denials: 1 },
-  { date: "2024-01-10", approvals: 12, denials: 0 },
-  { date: "2024-01-11", approvals: 15, denials: 2 },
-  { date: "2024-01-12", approvals: 18, denials: 1 },
-  { date: "2024-01-13", approvals: 14, denials: 3 },
-  { date: "2024-01-14", approvals: 22, denials: 2 },
-  { date: "2024-01-15", approvals: 12, denials: 1 },
-]
-
-const mockRatingDistribution: RatingDistribution[] = [
-  { rating: 1, count: 3 },
-  { rating: 2, count: 8 },
-  { rating: 3, count: 15 },
-  { rating: 4, count: 45 },
-  { rating: 5, count: 85 },
-]
-
 export default function FirmDetailPage() {
   const params = useParams()
   const slug = params.slug as string
 
-  const [firm, setFirm] = useState<Firm>(mockFirm)
-  const [cases, setCases] = useState<Case[]>(mockCases)
-  const [timelineData, setTimelineData] = useState<TimelineData[]>(mockTimelineData)
-  const [ratingDistribution, setRatingDistribution] = useState<RatingDistribution[]>(mockRatingDistribution)
+  const [firm, setFirm] = useState<Firm | null>(null)
+  const [cases, setCases] = useState<Case[]>([])
+  const [timelineData, setTimelineData] = useState<TimelineData[]>([])
+  const [ratingDistribution, setRatingDistribution] = useState<RatingDistribution[]>([])
   const [activeTab, setActiveTab] = useState("overview")
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function loadFirmData() {
+      try {
+        setIsLoading(true)
+        const supabase = createBrowserClient()
+
+        // Fetch firm details
+        const { data: firmData, error: firmError } = await supabase
+          .from("firms")
+          .select(`
+            *,
+            firms_agg (
+              approvals_7d,
+              approvals_30d,
+              approvals_total,
+              denials_7d,
+              denials_30d,
+              denials_total,
+              avg_rating,
+              approval_rate_30d,
+              ranking_score
+            )
+          `)
+          .eq("slug", slug)
+          .single()
+
+        if (firmError) {
+          throw new Error(firmError.message)
+        }
+
+        setFirm(firmData)
+
+        // Fetch firm cases
+        const { data: casesData, error: casesError } = await supabase
+          .from("cases")
+          .select(`
+            *,
+            firms (name, slug, logo_url)
+          `)
+          .eq("firm_id", firmData.id)
+          .eq("workflow_status", "published")
+          .order("published_at", { ascending: false })
+          .limit(10)
+
+        if (casesError) {
+          throw new Error(casesError.message)
+        }
+
+        setCases(casesData || [])
+
+        // Generate mock timeline data
+        const mockTimelineData: TimelineData[] = [
+          { date: "2024-01-09", approvals: 8, denials: 1 },
+          { date: "2024-01-10", approvals: 12, denials: 0 },
+          { date: "2024-01-11", approvals: 15, denials: 2 },
+          { date: "2024-01-12", approvals: 18, denials: 1 },
+          { date: "2024-01-13", approvals: 14, denials: 3 },
+          { date: "2024-01-14", approvals: 22, denials: 2 },
+          { date: "2024-01-15", approvals: 12, denials: 1 },
+        ]
+        setTimelineData(mockTimelineData)
+
+        // Generate mock rating distribution
+        const mockRatingDistribution: RatingDistribution[] = [
+          { rating: 1, count: 3 },
+          { rating: 2, count: 8 },
+          { rating: 3, count: 15 },
+          { rating: 4, count: 45 },
+          { rating: 5, count: 85 },
+        ]
+        setRatingDistribution(mockRatingDistribution)
+      } catch (err) {
+        console.error("Error loading firm data:", err)
+        setError("Failed to load firm data")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (slug) {
+      loadFirmData()
+    }
+  }, [slug])
 
   // Animated counter hook
   const useAnimatedCounter = (end: number, duration = 1000) => {
@@ -189,9 +184,32 @@ export default function FirmDetailPage() {
     return count
   }
 
-  const approvalsToday = useAnimatedCounter(firm.approvals_today, 800)
-  const approvals7d = useAnimatedCounter(firm.approvals_7d, 1000)
-  const approvals30d = useAnimatedCounter(firm.approvals_30d, 1200)
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading firm details...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !firm) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error || "Firm not found"}</p>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
+        </div>
+      </div>
+    )
+  }
+
+  const agg = firm.firms_agg
+  const approvalsToday = useAnimatedCounter(agg?.approvals_30d ? Math.floor(agg.approvals_30d / 30) : 0, 800)
+  const approvals7d = useAnimatedCounter(agg?.approvals_7d || 0, 1000)
+  const approvals30d = useAnimatedCounter(agg?.approvals_30d || 0, 1200)
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -202,7 +220,7 @@ export default function FirmDetailPage() {
     ))
   }
 
-  const CaseCard = ({ case: caseItem, index }: { case: Case; index: number }) => (
+  const CaseCard = ({ caseItem, index }: { caseItem: Case; index: number }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -224,14 +242,16 @@ export default function FirmDetailPage() {
               </Badge>
               <div className="flex items-center space-x-1">{renderStars(caseItem.rating)}</div>
             </div>
-            <div className="text-sm text-gray-500">{new Date(caseItem.payout_date).toLocaleDateString()}</div>
+            <div className="text-sm text-gray-500">
+              {caseItem.payout_date ? new Date(caseItem.payout_date).toLocaleDateString() : "N/A"}
+            </div>
           </div>
 
           {caseItem.title && <h3 className="font-semibold text-gray-900 mb-2">{caseItem.title}</h3>}
 
           {caseItem.notes && <p className="text-gray-600 text-sm mb-4 line-clamp-3">{caseItem.notes}</p>}
 
-          {caseItem.evidence_urls.length > 0 && (
+          {caseItem.evidence_urls && caseItem.evidence_urls.length > 0 && (
             <div className="flex space-x-2 mb-4">
               {caseItem.evidence_urls.slice(0, 3).map((url, i) => (
                 <div key={i} className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
@@ -246,7 +266,9 @@ export default function FirmDetailPage() {
             </div>
           )}
 
-          <div className="text-xs text-gray-500">Published {new Date(caseItem.published_at).toLocaleDateString()}</div>
+          <div className="text-xs text-gray-500">
+            Published {caseItem.published_at ? new Date(caseItem.published_at).toLocaleDateString() : "N/A"}
+          </div>
         </CardContent>
       </Card>
     </motion.div>
@@ -270,35 +292,39 @@ export default function FirmDetailPage() {
                   <div>
                     <div className="flex items-center space-x-3 mb-2">
                       <h1 className="text-3xl font-bold text-gray-900">{firm.name}</h1>
-                      <Badge className="bg-blue-100 text-blue-700">#{firm.rank}</Badge>
+                      <Badge className="bg-blue-100 text-blue-700">#{1}</Badge>
                     </div>
                     <div className="flex items-center space-x-4 mb-3">
                       <div className="flex items-center space-x-1">
-                        {renderStars(firm.avg_rating)}
-                        <span className="text-lg font-semibold text-gray-700 ml-2">{firm.avg_rating}</span>
-                        <span className="text-sm text-gray-500">({firm.ratings_count} reviews)</span>
+                        {agg && renderStars(agg.avg_rating || 0)}
+                        <span className="text-lg font-semibold text-gray-700 ml-2">
+                          {agg ? agg.avg_rating?.toFixed(1) : "N/A"}
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          ({agg ? agg.approvals_total : 0} reviews)
+                        </span>
                       </div>
                       <Separator orientation="vertical" className="h-6" />
                       <div className="flex items-center space-x-2 text-gray-600">
                         <Globe className="w-4 h-4" />
-                        <span>{firm.country}</span>
+                        <span>{firm.headquarters}</span>
                       </div>
                     </div>
                     <div className="flex items-center space-x-4">
                       <Badge variant="secondary" className="bg-green-100 text-green-700">
-                        {firm.approval_rate_30d.toFixed(1)}% Approval Rate
+                        {agg?.approval_rate_30d ? `${agg.approval_rate_30d.toFixed(1)}%` : "N/A"} Approval Rate
                       </Badge>
                       <div className="text-sm text-gray-600">
-                        Score: <span className="font-semibold">{firm.ranking_score.toFixed(1)}</span>
+                        Score: <span className="font-semibold">{agg?.ranking_score?.toFixed(1) || "N/A"}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3">
-                  {firm.website && (
+                  {firm.website_url && (
                     <Button variant="outline" asChild>
-                      <a href={firm.website} target="_blank" rel="noopener noreferrer">
+                      <a href={firm.website_url} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="w-4 h-4 mr-2" />
                         Visit Website
                       </a>
@@ -345,19 +371,19 @@ export default function FirmDetailPage() {
             </Card>
             <Card className="bg-white/80 backdrop-blur-sm border border-gray-200/50">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-red-500">{firm.denials_today}</div>
+                <div className="text-2xl font-bold text-red-500">{agg?.denials_30d ? Math.floor(agg.denials_30d / 30) : 0}</div>
                 <div className="text-sm text-gray-500">Denials Today</div>
               </CardContent>
             </Card>
             <Card className="bg-white/80 backdrop-blur-sm border border-gray-200/50">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-red-500">{firm.denials_7d}</div>
+                <div className="text-2xl font-bold text-red-500">{agg?.denials_7d || 0}</div>
                 <div className="text-sm text-gray-500">Denials 7d</div>
               </CardContent>
             </Card>
             <Card className="bg-white/80 backdrop-blur-sm border border-gray-200/50">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-red-500">{firm.denials_30d}</div>
+                <div className="text-2xl font-bold text-red-500">{agg?.denials_30d || 0}</div>
                 <div className="text-sm text-gray-500">Denials 30d</div>
               </CardContent>
             </Card>
@@ -404,7 +430,7 @@ export default function FirmDetailPage() {
                       <CardTitle>About {firm.name}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-gray-600 leading-relaxed">{firm.description}</p>
+                      <p className="text-gray-600 leading-relaxed">{firm.description || "No description available."}</p>
                     </CardContent>
                   </Card>
 
@@ -419,21 +445,27 @@ export default function FirmDetailPage() {
                       <CardContent className="space-y-4">
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Total Approvals</span>
-                          <span className="font-semibold text-green-600">{firm.approvals_total}</span>
+                          <span className="font-semibold text-green-600">{agg?.approvals_total || 0}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Total Denials</span>
-                          <span className="font-semibold text-red-500">{firm.denials_total}</span>
+                          <span className="font-semibold text-red-500">{agg?.denials_total || 0}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Success Rate</span>
-                          <span className="font-semibold text-blue-600">{firm.approval_rate_30d.toFixed(1)}%</span>
+                          <span className="font-semibold text-blue-600">
+                            {agg?.approval_rate_30d ? `${agg.approval_rate_30d.toFixed(1)}%` : "N/A"}
+                          </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Community Rating</span>
                           <div className="flex items-center space-x-2">
-                            <div className="flex items-center space-x-1">{renderStars(firm.avg_rating)}</div>
-                            <span className="font-semibold">{firm.avg_rating}</span>
+                            <div className="flex items-center space-x-1">
+                              {agg && renderStars(agg.avg_rating || 0)}
+                            </div>
+                            <span className="font-semibold">
+                              {agg ? agg.avg_rating?.toFixed(1) : "N/A"}
+                            </span>
                           </div>
                         </div>
                       </CardContent>
@@ -463,7 +495,9 @@ export default function FirmDetailPage() {
                               <div className="flex-1">
                                 <div className="text-sm font-medium">{caseItem.title || "Case submitted"}</div>
                                 <div className="text-xs text-gray-500">
-                                  {new Date(caseItem.published_at).toLocaleDateString()}
+                                  {caseItem.published_at
+                                    ? new Date(caseItem.published_at).toLocaleDateString()
+                                    : "N/A"}
                                 </div>
                               </div>
                               <div className="flex items-center space-x-1">{renderStars(caseItem.rating)}</div>
@@ -494,7 +528,7 @@ export default function FirmDetailPage() {
                     {cases
                       .filter((c) => c.type === "approval")
                       .map((caseItem, index) => (
-                        <CaseCard key={caseItem.id} case={caseItem} index={index} />
+                        <CaseCard key={caseItem.id} caseItem={caseItem} index={index} />
                       ))}
                   </div>
                 </motion.div>
@@ -518,7 +552,7 @@ export default function FirmDetailPage() {
                     {cases
                       .filter((c) => c.type === "denial")
                       .map((caseItem, index) => (
-                        <CaseCard key={caseItem.id} case={caseItem} index={index} />
+                        <CaseCard key={caseItem.id} caseItem={caseItem} index={index} />
                       ))}
                   </div>
                 </motion.div>
@@ -606,16 +640,21 @@ export default function FirmDetailPage() {
                       <CardContent className="space-y-4">
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Total Reviews</span>
-                          <span className="font-semibold">{firm.ratings_count}</span>
+                          <span className="font-semibold">{agg?.approvals_total || 0}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Average Rating</span>
-                          <span className="font-semibold">{firm.avg_rating}/5</span>
+                          <span className="font-semibold">
+                            {agg ? `${agg.avg_rating?.toFixed(1)}/5` : "N/A"}
+                          </span>
                         </div>
                         <div className="space-y-2">
                           {[5, 4, 3, 2, 1].map((rating) => {
                             const count = ratingDistribution.find((r) => r.rating === rating)?.count || 0
-                            const percentage = (count / firm.ratings_count) * 100
+                            const percentage =
+                              agg && agg.approvals_total
+                                ? (count / agg.approvals_total) * 100
+                                : 0
                             return (
                               <div key={rating} className="flex items-center space-x-3">
                                 <span className="text-sm w-8">{rating}★</span>
@@ -638,21 +677,23 @@ export default function FirmDetailPage() {
                       <CardContent className="space-y-4">
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Success Rate (30d)</span>
-                          <span className="font-semibold text-green-600">{firm.approval_rate_30d.toFixed(1)}%</span>
+                          <span className="font-semibold text-green-600">
+                            {agg?.approval_rate_30d ? `${agg.approval_rate_30d.toFixed(1)}%` : "N/A"}
+                          </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Ranking Score</span>
-                          <span className="font-semibold text-blue-600">{firm.ranking_score.toFixed(1)}/10</span>
+                          <span className="font-semibold text-blue-600">
+                            {agg?.ranking_score ? `${agg.ranking_score.toFixed(1)}/10` : "N/A"}
+                          </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Global Rank</span>
-                          <span className="font-semibold">#{firm.rank}</span>
+                          <span className="font-semibold">#{1}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Last Activity</span>
-                          <span className="font-semibold">
-                            {firm.last_case_at ? new Date(firm.last_case_at).toLocaleDateString() : "N/A"}
-                          </span>
+                          <span className="font-semibold">N/A</span>
                         </div>
                       </CardContent>
                     </Card>
