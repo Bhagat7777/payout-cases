@@ -1,13 +1,12 @@
 import { createBrowserClient as createSupabaseBrowserClient } from "@supabase/ssr"
+import { supabaseConfig, validateSupabaseConfig } from "./config"
 
 export function createBrowserClient() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    throw new Error("Missing Supabase environment variables")
-  }
+  validateSupabaseConfig()
   
   return createSupabaseBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    supabaseConfig.url!,
+    supabaseConfig.anonKey!
   )
 }
 
