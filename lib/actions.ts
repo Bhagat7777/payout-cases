@@ -103,6 +103,8 @@ export async function getFirmsWithStats() {
       firms_agg (
         approvals_total,
         denials_total,
+        approvals_7d,
+        denials_7d,
         approvals_30d,
         denials_30d,
         avg_rating,
