@@ -3,14 +3,6 @@ import type { Metadata } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import "./globals.css"
-import { validateSupabaseConfig } from "@/lib/supabase/config"
-
-// Validate Supabase configuration on app startup
-try {
-  validateSupabaseConfig()
-} catch (error) {
-  console.warn("Supabase configuration warning:", error)
-}
 
 export const metadata: Metadata = {
   title: "Payout Cases — Prop Firm Payout Reviews",

@@ -21,6 +21,7 @@ import {
   ChevronDown,
 } from "lucide-react"
 import Link from "next/link"
+import { SupabaseConfigChecker } from "@/components/SupabaseConfigChecker"
 
 export default function HomePage() {
   const [isVisible, setIsVisible] = useState(false)
@@ -91,6 +92,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#0B0F17" }}>
+      <SupabaseConfigChecker />
       <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
