@@ -3,7 +3,7 @@
 import { createServerClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import type { SupabaseClient } from "@supabase/supabase-js"
+import { SupabaseClient } from "@supabase/supabase-js"
 
 export async function submitCase(formData: FormData) {
   const supabase = await createServerClient()
@@ -12,7 +12,7 @@ export async function submitCase(formData: FormData) {
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser()
+  } = await (supabase as SupabaseClient).auth.getUser()
   if (authError || !user) {
     throw new Error("Authentication required")
   }
@@ -30,7 +30,7 @@ export async function submitCase(formData: FormData) {
   for (const file of files) {
     if (file.size > 0) {
       const fileName = `${Date.now()}-${file.name}`
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await (supabase as SupabaseClient).storage
         .from("evidence")
         .upload(`private/${fileName}`, file)
 
@@ -44,7 +44,7 @@ export async function submitCase(formData: FormData) {
   }
 
   // Insert case
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as SupabaseClient)
     .from("cases")
     .insert({
       firm_id: firmId,
@@ -80,19 +80,23 @@ export async function publishCase(caseId: string) {
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser()
+  } = await (supabase as SupabaseClient).auth.getUser()
   if (authError || !user) {
     throw new Error("Authentication required")
   }
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
+  const { data: profile, error: profileError } = await (supabase as SupabaseClient).from("profiles").select("role").eq("id", user.id).single()
 
-  if (!profile || !["moderator", "admin"].includes(profile.role)) {
+  if (profileError) {
+    throw new Error(`Failed to fetch profile: ${profileError.message}`);
+  }
+
+  if (!profile || !["moderator", "admin"].includes(profile.role || '')) {
     throw new Error("Insufficient permissions")
   }
 
   // Update case status
-  const { error } = await supabase
+  const { error } = await (supabase as SupabaseClient)
     .from("cases")
     .update({
       workflow_status: "published",

@@ -3,7 +3,7 @@
 import { createServerClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import type { SupabaseClient } from "@supabase/supabase-js"
+import { SupabaseClient } from "@supabase/supabase-js"
 
 export async function submitCase(formData: FormData) {
   const supabase = await createServerClient()
@@ -12,7 +12,7 @@ export async function submitCase(formData: FormData) {
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser()
+  } = await (supabase as SupabaseClient).auth.getUser()
   if (authError || !user) {
     throw new Error("Authentication required")
   }
@@ -32,7 +32,7 @@ export async function submitCase(formData: FormData) {
   for (const file of files) {
     if (file.size > 0) {
       const fileName = `${Date.now()}-${file.name}`
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await (supabase as SupabaseClient).storage
         .from("evidence")
         .upload(`private/${fileName}`, file)
 
@@ -45,7 +45,7 @@ export async function submitCase(formData: FormData) {
   }
 
   // Insert case
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as SupabaseClient)
     .from("cases")
     .insert({
       firm_id: firmId,
@@ -66,7 +66,7 @@ export async function submitCase(formData: FormData) {
   }
 
   // Create moderation event
-  await supabase.from("moderation_events").insert({
+  await (supabase as SupabaseClient).from("moderation_events").insert({
     case_id: data.id,
     action: "submitted",
     actor: user.id,
@@ -79,19 +79,19 @@ export async function submitCase(formData: FormData) {
 export async function getFirms() {
   const supabase = await createServerClient()
 
-  const { data, error } = await supabase.from("firms").select("id, name, slug, logo_url").order("name")
+  const { data, error } = await (supabase as SupabaseClient).from("firms").select("id, name, slug, logo_url").order("name")
 
   if (error) {
     throw new Error(`Failed to fetch firms: ${error.message}`)
   }
 
-  return data
+  return data || []
 }
 
 export async function getFirmsWithStats() {
   const supabase = await createServerClient()
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as SupabaseClient)
     .from("firms")
     .select(`
       id,
@@ -119,23 +119,23 @@ export async function getFirmsWithStats() {
     throw new Error(`Failed to fetch firms with stats: ${error.message}`)
   }
 
-  return data
+  return data || []
 }
 
 export async function getFirmBySlug(slug: string) {
   const supabase = await createServerClient()
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as SupabaseClient)
     .from("firms")
     .select(`
       *,
       firms_agg (
-        approvals_total,
-        denials_total,
         approvals_7d,
-        denials_7d,
         approvals_30d,
+        approvals_total,
+        denials_7d,
         denials_30d,
+        denials_total,
         avg_rating,
         approval_rate_30d,
         ranking_score
@@ -154,7 +154,7 @@ export async function getFirmBySlug(slug: string) {
 export async function getCases(type?: "approval" | "denial", firmId?: string, limit = 20, offset = 0) {
   const supabase = await createServerClient()
 
-  let query = supabase
+  let query = (supabase as SupabaseClient)
     .from("cases")
     .select(`
       *,
@@ -179,14 +179,14 @@ export async function getCases(type?: "approval" | "denial", firmId?: string, li
     throw new Error(`Failed to fetch cases: ${error.message}`)
   }
 
-  return data
+  return data || []
 }
 
 export async function getGlobalStats() {
   const supabase = await createServerClient()
 
   // Get total counts
-  const { data: totalStats, error: totalError } = await supabase
+  const { data: totalStats, error: totalError } = await (supabase as SupabaseClient)
     .from("cases")
     .select("type, rating")
     .eq("workflow_status", "published")
@@ -198,7 +198,7 @@ export async function getGlobalStats() {
   const approvals = totalStats.filter((c: any) => c.type === "approval")
   const denials = totalStats.filter((c: any) => c.type === "denial")
   const totalCases = totalStats.length
-  const avgRating = totalStats.reduce((sum: any, c: any) => sum + c.rating, 0) / totalCases || 0
+  const avgRating = totalStats.reduce((sum: number, c: any) => sum + (c.rating || 0), 0) / totalCases || 0
 
   return {
     totalApprovals: approvals.length,

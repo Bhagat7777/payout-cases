@@ -1,9 +1,17 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
-import { supabaseConfig, validateSupabaseConfig } from "./config"
+import { supabaseConfig } from "./config"
 
 export async function updateSession(request: NextRequest) {
-  validateSupabaseConfig()
+  // Only run middleware in server environment
+  if (typeof window !== 'undefined') {
+    return NextResponse.next({ request })
+  }
+  
+  if (!supabaseConfig.url || !supabaseConfig.anonKey) {
+    console.warn("Supabase config missing in middleware")
+    return NextResponse.next({ request })
+  }
   
   let supabaseResponse = NextResponse.next({
     request,

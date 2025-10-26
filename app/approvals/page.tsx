@@ -158,7 +158,6 @@ export default function ApprovalsPage() {
 
   const formatRelativeTime = (dateString: string | null) => {
     if (!dateString) return "Unknown"
-    
     const date = new Date(dateString)
     const now = new Date()
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
@@ -376,7 +375,7 @@ export default function ApprovalsPage() {
                               </div>
                             )}
                             <div className="text-[#22C55E] font-bold text-lg">
-                              {caseItem.payout_date ? new Date(caseItem.payout_date).toLocaleDateString() : "N/A"}
+                              {new Date(caseItem.payout_date).toLocaleDateString()}
                             </div>
                           </div>
                         </div>

@@ -81,19 +81,22 @@ export default function DenialsPage() {
     const now = new Date()
     if (activeTab === "today") {
       filtered = filtered.filter((c) => {
-        const publishedAt = new Date(c.published_at || c.created_at || new Date().toISOString())
+        const publishedAtStr = c.published_at || c.created_at || new Date().toISOString()
+        const publishedAt = new Date(publishedAtStr)
         const diff = now.getTime() - publishedAt.getTime()
         return diff < 24 * 60 * 60 * 1000
       })
     } else if (activeTab === "7d") {
       filtered = filtered.filter((c) => {
-        const publishedAt = new Date(c.published_at || c.created_at || new Date().toISOString())
+        const publishedAtStr = c.published_at || c.created_at || new Date().toISOString()
+        const publishedAt = new Date(publishedAtStr)
         const diff = now.getTime() - publishedAt.getTime()
         return diff < 7 * 24 * 60 * 60 * 1000
       })
     } else if (activeTab === "30d") {
       filtered = filtered.filter((c) => {
-        const publishedAt = new Date(c.published_at || c.created_at || new Date().toISOString())
+        const publishedAtStr = c.published_at || c.created_at || new Date().toISOString()
+        const publishedAt = new Date(publishedAtStr)
         const diff = now.getTime() - publishedAt.getTime()
         return diff < 30 * 24 * 60 * 60 * 1000
       })
@@ -122,12 +125,12 @@ export default function DenialsPage() {
     // Sort
     if (sortBy === "newest") {
       filtered.sort((a, b) => {
-        const aDate = new Date(a.published_at || a.created_at || new Date().toISOString()).getTime()
-        const bDate = new Date(b.published_at || b.created_at || new Date().toISOString()).getTime()
-        return bDate - aDate
+        const aDateStr = a.published_at || a.created_at || new Date().toISOString()
+        const bDateStr = b.published_at || b.created_at || new Date().toISOString()
+        return new Date(bDateStr).getTime() - new Date(aDateStr).getTime()
       })
     } else if (sortBy === "rating") {
-      filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0))
+      filtered.sort((a, b) => (a.rating || 0) - (b.rating || 0)) // Lowest rating first for denials
     }
 
     setFilteredCases(filtered)
@@ -156,7 +159,6 @@ export default function DenialsPage() {
 
   const formatRelativeTime = (dateString: string | null) => {
     if (!dateString) return "Unknown"
-    
     const date = new Date(dateString)
     const now = new Date()
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
@@ -372,7 +374,7 @@ export default function DenialsPage() {
                               ))}
                             </div>
                             <div className="text-[#EF4444] font-bold text-lg">
-                              {caseItem.payout_date ? new Date(caseItem.payout_date).toLocaleDateString() : "N/A"}
+                              ${caseItem.amount ? caseItem.amount.toString() : "N/A"}
                             </div>
                           </div>
                         </div>

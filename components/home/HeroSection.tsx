@@ -129,9 +129,9 @@ export function HeroSection() {
         style={{ y: y2 }}
         className="absolute top-20 right-20 w-72 h-72 bg-[#7C5CFF]/20 rounded-full blur-3xl animate-float"
       />
-      <div 
+      <motion.div
+        style={{ y: y1, animationDelay: "1s" }}
         className="absolute bottom-20 left-20 w-96 h-96 bg-[#00D1B2]/20 rounded-full blur-3xl animate-float"
-        style={{ animationDelay: "1s" }}
       />
 
       <div className="max-w-7xl mx-auto text-center relative z-10">
