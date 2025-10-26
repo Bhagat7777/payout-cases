@@ -7,7 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Progress } from "@/components/ui/progress"
-import { Star, FileText, Calendar, BarChart3, Clock, Award, Users, Globe } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Star, FileText, Calendar, BarChart3, Clock, Award, Users, Globe, TrendingUp, TrendingDown } from "lucide-react"
 import { createBrowserClient } from "@/lib/supabase/client"
 import { FirmHeader } from "@/components/firms/FirmHeader"
 import { KpiStrip } from "@/components/firms/KpiStrip"
@@ -183,7 +185,7 @@ export default function FirmDetailPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto px-4 py-8">
         <FirmHeader firm={firm} />
-        <KpiStrip agg={agg} />
+        {agg && <KpiStrip agg={agg} />}
 
         {/* Tabs */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>

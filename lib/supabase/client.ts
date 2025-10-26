@@ -1,6 +1,6 @@
 import { createBrowserClient as createSupabaseBrowserClient } from "@supabase/ssr"
 import { supabaseConfig } from "./config"
-import { SupabaseClient } from "@supabase/supabase-js"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 export function createBrowserClient() {
   // Only create client in browser environment
@@ -11,8 +11,23 @@ export function createBrowserClient() {
         getUser: async () => ({ data: { user: null }, error: null }),
       },
       from: () => ({
-        select: () => ({ data: null, error: null, single: () => ({ data: null, error: null }), eq: () => ({ data: null, error: null }), order: () => ({ data: null, error: null }), range: () => ({ data: null, error: null }), single: () => ({ data: null, error: null }) }),
-        insert: () => ({ data: null, error: null, select: () => ({ data: null, error: null, single: () => ({ data: null, error: null }) }) }),
+        select: () => ({ 
+          data: null, 
+          error: null, 
+          single: () => ({ data: null, error: null }),
+          eq: () => ({ data: null, error: null }),
+          order: () => ({ data: null, error: null }),
+          range: () => ({ data: null, error: null })
+        }),
+        insert: () => ({ 
+          data: null, 
+          error: null, 
+          select: () => ({ 
+            data: null, 
+            error: null, 
+            single: () => ({ data: null, error: null }) 
+          }) 
+        }),
         update: () => ({ data: null, error: null }),
       }),
       channel: () => ({
@@ -35,8 +50,23 @@ export function createBrowserClient() {
         getUser: async () => ({ data: { user: null }, error: null }),
       },
       from: () => ({
-        select: () => ({ data: null, error: null, single: () => ({ data: null, error: null }), eq: () => ({ data: null, error: null }), order: () => ({ data: null, error: null }), range: () => ({ data: null, error: null }), single: () => ({ data: null, error: null }) }),
-        insert: () => ({ data: null, error: null, select: () => ({ data: null, error: null, single: () => ({ data: null, error: null }) }) }),
+        select: () => ({ 
+          data: null, 
+          error: null, 
+          single: () => ({ data: null, error: null }),
+          eq: () => ({ data: null, error: null }),
+          order: () => ({ data: null, error: null }),
+          range: () => ({ data: null, error: null })
+        }),
+        insert: () => ({ 
+          data: null, 
+          error: null, 
+          select: () => ({ 
+            data: null, 
+            error: null, 
+            single: () => ({ data: null, error: null }) 
+          }) 
+        }),
         update: () => ({ data: null, error: null }),
       }),
       channel: () => ({
@@ -55,7 +85,7 @@ export function createBrowserClient() {
   return createSupabaseBrowserClient(
     supabaseConfig.url!,
     supabaseConfig.anonKey!
-  )
+  ) as SupabaseClient
 }
 
 export function createClient() {

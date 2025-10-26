@@ -16,6 +16,7 @@ import type { Database } from "@/lib/supabase/types"
 
 type Case = Database["public"]["Tables"]["cases"]["Row"] & {
   firms: Database["public"]["Tables"]["firms"]["Row"]
+  amount?: string | null
 }
 
 export default function DenialsPage() {
