@@ -1,8 +1,9 @@
 import { createServerClient } from "@/lib/supabase/server"
 import { createBrowserClient } from "@/lib/supabase/client"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 export async function getFirms() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   const { data: firms, error } = await supabase
     .from("firms")
@@ -27,7 +28,7 @@ export async function getFirms() {
 }
 
 export async function getFirmBySlug(slug: string) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   const { data: firm, error } = await supabase
     .from("firms")
@@ -57,7 +58,7 @@ export async function getFirmBySlug(slug: string) {
 }
 
 export async function getFirmCases(firmId: string, type?: "approval" | "denial", limit = 20) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   let query = supabase
     .from("cases")

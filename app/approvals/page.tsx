@@ -83,19 +83,19 @@ export default function ApprovalsPage() {
     const now = new Date()
     if (activeTab === "today") {
       filtered = filtered.filter((c) => {
-        const publishedAt = new Date(c.published_at || c.created_at)
+        const publishedAt = new Date(c.published_at || c.created_at || new Date().toISOString())
         const diff = now.getTime() - publishedAt.getTime()
         return diff < 24 * 60 * 60 * 1000
       })
     } else if (activeTab === "7d") {
       filtered = filtered.filter((c) => {
-        const publishedAt = new Date(c.published_at || c.created_at)
+        const publishedAt = new Date(c.published_at || c.created_at || new Date().toISOString())
         const diff = now.getTime() - publishedAt.getTime()
         return diff < 7 * 24 * 60 * 60 * 1000
       })
     } else if (activeTab === "30d") {
       filtered = filtered.filter((c) => {
-        const publishedAt = new Date(c.published_at || c.created_at)
+        const publishedAt = new Date(c.published_at || c.created_at || new Date().toISOString())
         const diff = now.getTime() - publishedAt.getTime()
         return diff < 30 * 24 * 60 * 60 * 1000
       })
@@ -124,8 +124,8 @@ export default function ApprovalsPage() {
     // Sort
     if (sortBy === "newest") {
       filtered.sort((a, b) => {
-        const aDate = new Date(a.published_at || a.created_at).getTime()
-        const bDate = new Date(b.published_at || b.created_at).getTime()
+        const aDate = new Date(a.published_at || a.created_at || new Date().toISOString()).getTime()
+        const bDate = new Date(b.published_at || b.created_at || new Date().toISOString()).getTime()
         return bDate - aDate
       })
     } else if (sortBy === "rating") {
@@ -156,7 +156,9 @@ export default function ApprovalsPage() {
 
   const firms = Array.from(new Set(cases.map((c) => c.firms.name)))
 
-  const formatRelativeTime = (dateString: string) => {
+  const formatRelativeTime = (dateString: string | null) => {
+    if (!dateString) return "Unknown"
+    
     const date = new Date(dateString)
     const now = new Date()
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
@@ -374,7 +376,7 @@ export default function ApprovalsPage() {
                               </div>
                             )}
                             <div className="text-[#22C55E] font-bold text-lg">
-                              {new Date(caseItem.payout_date).toLocaleDateString()}
+                              {caseItem.payout_date ? new Date(caseItem.payout_date).toLocaleDateString() : "N/A"}
                             </div>
                           </div>
                         </div>

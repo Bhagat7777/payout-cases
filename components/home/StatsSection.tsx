@@ -29,7 +29,7 @@ export function StatsSection() {
               transition={{ delay: index * 0.1 }}
               className="text-center group"
               whileHover={{ scale: 1.05, y: -5 }}
-              transition={{ type: "spring", stiffness: 300 }}
+              transition={{ type: "spring", stiffness: 300 } as any}
             >
               <div className="mb-4 flex justify-center">
                 <div

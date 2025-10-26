@@ -3,9 +3,10 @@
 import { createServerClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 export async function submitCase(formData: FormData) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   // Get current user
   const {
@@ -76,7 +77,7 @@ export async function submitCase(formData: FormData) {
 }
 
 export async function getFirms() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   const { data, error } = await supabase.from("firms").select("id, name, slug, logo_url").order("name")
 
@@ -88,7 +89,7 @@ export async function getFirms() {
 }
 
 export async function getFirmsWithStats() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   const { data, error } = await supabase
     .from("firms")
@@ -122,7 +123,7 @@ export async function getFirmsWithStats() {
 }
 
 export async function getFirmBySlug(slug: string) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   const { data, error } = await supabase
     .from("firms")
@@ -151,7 +152,7 @@ export async function getFirmBySlug(slug: string) {
 }
 
 export async function getCases(type?: "approval" | "denial", firmId?: string, limit = 20, offset = 0) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   let query = supabase
     .from("cases")
@@ -182,7 +183,7 @@ export async function getCases(type?: "approval" | "denial", firmId?: string, li
 }
 
 export async function getGlobalStats() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   // Get total counts
   const { data: totalStats, error: totalError } = await supabase
@@ -194,10 +195,10 @@ export async function getGlobalStats() {
     throw new Error(`Failed to fetch stats: ${totalError.message}`)
   }
 
-  const approvals = totalStats.filter((c) => c.type === "approval")
-  const denials = totalStats.filter((c) => c.type === "denial")
+  const approvals = totalStats.filter((c: any) => c.type === "approval")
+  const denials = totalStats.filter((c: any) => c.type === "denial")
   const totalCases = totalStats.length
-  const avgRating = totalStats.reduce((sum, c) => sum + c.rating, 0) / totalCases || 0
+  const avgRating = totalStats.reduce((sum: any, c: any) => sum + c.rating, 0) / totalCases || 0
 
   return {
     totalApprovals: approvals.length,

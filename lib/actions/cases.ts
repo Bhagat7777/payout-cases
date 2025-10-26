@@ -3,9 +3,10 @@
 import { createServerClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 export async function submitCase(formData: FormData) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   // Get current user
   const {
@@ -73,7 +74,7 @@ export async function submitCase(formData: FormData) {
 }
 
 export async function publishCase(caseId: string) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   // Get current user and check if moderator/admin
   const {

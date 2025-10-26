@@ -81,17 +81,20 @@ export default function DenialsPage() {
     const now = new Date()
     if (activeTab === "today") {
       filtered = filtered.filter((c) => {
-        const diff = now.getTime() - c.published_at.getTime()
+        const publishedAt = new Date(c.published_at || c.created_at || new Date().toISOString())
+        const diff = now.getTime() - publishedAt.getTime()
         return diff < 24 * 60 * 60 * 1000
       })
     } else if (activeTab === "7d") {
       filtered = filtered.filter((c) => {
-        const diff = now.getTime() - c.published_at.getTime()
+        const publishedAt = new Date(c.published_at || c.created_at || new Date().toISOString())
+        const diff = now.getTime() - publishedAt.getTime()
         return diff < 7 * 24 * 60 * 60 * 1000
       })
     } else if (activeTab === "30d") {
       filtered = filtered.filter((c) => {
-        const diff = now.getTime() - c.published_at.getTime()
+        const publishedAt = new Date(c.published_at || c.created_at || new Date().toISOString())
+        const diff = now.getTime() - publishedAt.getTime()
         return diff < 30 * 24 * 60 * 60 * 1000
       })
     }
@@ -101,8 +104,8 @@ export default function DenialsPage() {
       filtered = filtered.filter(
         (c) =>
           c.firms.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          c.comment.toLowerCase().includes(searchQuery.toLowerCase()),
+          (c.title && c.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (c.notes && c.notes.toLowerCase().includes(searchQuery.toLowerCase())),
       )
     }
 
@@ -113,14 +116,18 @@ export default function DenialsPage() {
 
     // Filter by rating
     if (selectedRating !== "all") {
-      filtered = filtered.filter((c) => c.rating >= Number.parseInt(selectedRating))
+      filtered = filtered.filter((c) => c.rating && c.rating >= Number.parseInt(selectedRating))
     }
 
     // Sort
     if (sortBy === "newest") {
-      filtered.sort((a, b) => b.published_at.getTime() - a.published_at.getTime())
+      filtered.sort((a, b) => {
+        const aDate = new Date(a.published_at || a.created_at || new Date().toISOString()).getTime()
+        const bDate = new Date(b.published_at || b.created_at || new Date().toISOString()).getTime()
+        return bDate - aDate
+      })
     } else if (sortBy === "rating") {
-      filtered.sort((a, b) => a.rating - b.rating) // Lowest rating first for denials
+      filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0))
     }
 
     setFilteredCases(filtered)
@@ -147,7 +154,9 @@ export default function DenialsPage() {
 
   const firms = Array.from(new Set(cases.map((c) => c.firms.name)))
 
-  const formatRelativeTime = (dateString: string) => {
+  const formatRelativeTime = (dateString: string | null) => {
+    if (!dateString) return "Unknown"
+    
     const date = new Date(dateString)
     const now = new Date()
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
@@ -346,7 +355,7 @@ export default function DenialsPage() {
                                   Denied
                                 </Badge>
                                 <span className="text-gray-400 text-sm">
-                                  {formatRelativeTime(caseItem.published_at.toISOString())}
+                                  {formatRelativeTime(caseItem.published_at || caseItem.created_at)}
                                 </span>
                               </div>
                             </div>
@@ -357,26 +366,28 @@ export default function DenialsPage() {
                                 <Star
                                   key={i}
                                   className={`w-3 h-3 ${
-                                    i < caseItem.rating ? "text-[#EF4444] fill-current" : "text-gray-600"
+                                    i < (caseItem.rating || 0) ? "text-[#EF4444] fill-current" : "text-gray-600"
                                   }`}
                                 />
                               ))}
                             </div>
-                            <div className="text-[#EF4444] font-bold text-lg">{caseItem.amount}</div>
+                            <div className="text-[#EF4444] font-bold text-lg">
+                              {caseItem.payout_date ? new Date(caseItem.payout_date).toLocaleDateString() : "N/A"}
+                            </div>
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <h3 className="text-[#E6E7EB] font-semibold mb-2">{caseItem.title}</h3>
-                        <p className="text-gray-300 text-sm mb-4 line-clamp-3">{caseItem.comment}</p>
+                        <h3 className="text-[#E6E7EB] font-semibold mb-2">{caseItem.title || "Payout Denied"}</h3>
+                        <p className="text-gray-300 text-sm mb-4 line-clamp-3">
+                          {caseItem.notes || "Payout was denied."}
+                        </p>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-4 text-xs text-gray-400">
                             <span className="flex items-center">
                               <Eye className="w-3 h-3 mr-1" />
-                              {caseItem.evidence_count} evidence
+                              {caseItem.evidence_urls?.length || 0} evidence
                             </span>
-                            <span>{caseItem.country}</span>
-                            {caseItem.anonymous && <span>Anonymous</span>}
                           </div>
                           <Link href={`/cases/${caseItem.id}`}>
                             <Button

@@ -1,7 +1,8 @@
 import { createBrowserClient as createSupabaseBrowserClient } from "@supabase/ssr"
 import { supabaseConfig, validateSupabaseConfig } from "./config"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
-export function createBrowserClient() {
+export function createBrowserClient(): SupabaseClient {
   validateSupabaseConfig()
   
   return createSupabaseBrowserClient(
@@ -10,6 +11,6 @@ export function createBrowserClient() {
   )
 }
 
-export function createClient() {
+export function createClient(): SupabaseClient {
   return createBrowserClient()
 }
