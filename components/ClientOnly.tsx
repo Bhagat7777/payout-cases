@@ -10,7 +10,9 @@ export function ClientOnly({ children }: { children: React.ReactNode }) {
   }, [])
 
   if (!hasMounted) {
-    return null
+    // Render a placeholder div on the server/initial client render
+    // to maintain structural consistency with the client-rendered output.
+    return <div style={{ minHeight: '100vh' }} />
   }
 
   return <>{children}</>

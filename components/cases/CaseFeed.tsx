@@ -166,7 +166,7 @@ export function CaseFeed({ type }: CaseFeedProps) {
                     "--tw-bg-opacity": activeTab === period.value ? 0.2 : 0,
                     color: activeTab === period.value ? badgeColor : 'var(--foreground)',
                     backgroundColor: activeTab === period.value ? `${badgeColor}20` : 'transparent',
-                  }}
+                  } as React.CSSProperties}
                   className={`data-[state=active]:bg-[${badgeColor}]/20 data-[state=active]:text-[${badgeColor}]`}
                 >
                   {period.label}
@@ -302,7 +302,7 @@ export function CaseFeed({ type }: CaseFeedProps) {
                             <div>
                               <CardTitle className="text-[#E6E7EB] text-lg">{caseItem.firms.name}</CardTitle>
                               <div className="flex items-center space-x-2">
-                                <Badge style={{ backgroundColor: `${badgeColor}10`, color: badgeColor, borderColor: `${badgeColor}20` }} className="text-xs">
+                                <Badge style={{ backgroundColor: `${badgeColor}10`, color: badgeColor, borderColor: `${badgeColor}20` }}>
                                   {isApproval ? "Approved" : "Denied"}
                                 </Badge>
                                 <span className="text-gray-400 text-sm">
