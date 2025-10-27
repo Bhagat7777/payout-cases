@@ -5,9 +5,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { useAnimatedCounter } from "@/hooks/use-animated-counter"
 import { LineChart, Line, ResponsiveContainer } from "recharts"
 import { Star, TrendingUp } from "lucide-react"
-import type { GlobalStats } from "@/lib/mockData"
+import type { GlobalStats, TimelineData } from "@/lib/mockData"
 
-export function GlobalCounters({ stats }: { stats: GlobalStats }) {
+interface StatsWithSparkline extends GlobalStats {
+  sparklineData: TimelineData[]
+}
+
+export function GlobalCounters({ stats }: { stats: StatsWithSparkline }) {
   const animatedApprovals = useAnimatedCounter(stats.totalApprovals, 1200)
   const animatedDenials = useAnimatedCounter(stats.totalDenials, 800)
   const animatedApprovalRate = useAnimatedCounter(stats.approvalRate, 1000)
@@ -28,7 +32,7 @@ export function GlobalCounters({ stats }: { stats: GlobalStats }) {
             </div>
             <div className="w-16 h-12">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={stats.sparklineData.slice(-7)}>
+                <LineChart data={stats.sparklineData}>
                   <Line type="monotone" dataKey="approvals" stroke="#22c55e" strokeWidth={2} dot={false} activeDot={false} />
                 </LineChart>
               </ResponsiveContainer>
@@ -46,7 +50,7 @@ export function GlobalCounters({ stats }: { stats: GlobalStats }) {
             </div>
             <div className="w-16 h-12">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={stats.sparklineData.slice(-7)}>
+                <LineChart data={stats.sparklineData}>
                   <Line type="monotone" dataKey="denials" stroke="#ef4444" strokeWidth={2} dot={false} activeDot={false} />
                 </LineChart>
               </ResponsiveContainer>

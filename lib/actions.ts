@@ -181,30 +181,3 @@ export async function getCases(type?: "approval" | "denial", firmId?: string, li
 
   return data || []
 }
-
-export async function getGlobalStats() {
-  const supabase = await createServerClient()
-
-  // Get total counts
-  const { data: totalStats, error: totalError } = await (supabase as SupabaseClient)
-    .from("cases")
-    .select("type, rating")
-    .eq("workflow_status", "published")
-
-  if (totalError) {
-    throw new Error(`Failed to fetch stats: ${totalError.message}`)
-  }
-
-  const approvals = totalStats.filter((c: any) => c.type === "approval")
-  const denials = totalStats.filter((c: any) => c.type === "denial")
-  const totalCases = totalStats.length
-  const avgRating = totalStats.reduce((sum: number, c: any) => sum + (c.rating || 0), 0) / totalCases || 0
-
-  return {
-    totalApprovals: approvals.length,
-    totalDenials: denials.length,
-    totalCases,
-    approvalRate: totalCases > 0 ? (approvals.length / totalCases) * 100 : 0,
-    avgRating: Math.round(avgRating * 100) / 100,
-  }
-}
