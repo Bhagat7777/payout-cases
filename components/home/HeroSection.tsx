@@ -17,107 +17,13 @@ export function HeroSection() {
     monthApprovals: 687,
     monthDenials: 198,
   })
-  const [isClient, setIsClient] = useState(false)
-
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
+  // Removed isClient state and useEffect
 
   const { scrollY } = useScroll()
   const y1 = useTransform(scrollY, [0, 300], [0, 50])
   const y2 = useTransform(scrollY, [0, 300], [0, -50])
 
-  if (!isClient) {
-    return (
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#7C5CFF]/10 via-transparent to-[#00D1B2]/10"></div>
-        <div className="max-w-7xl mx-auto text-center relative z-10">
-          <div className="mb-6">
-            <Badge className="bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20">
-              <div className="w-2 h-2 bg-[#22C55E] rounded-full mr-2"></div>
-              Live Tracking • 10,000+ Traders
-            </Badge>
-          </div>
-
-          <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight" style={{ color: "#E6E7EB" }}>
-            Real-Time
-            <span className="bg-gradient-to-r from-[#7C5CFF] to-[#00D1B2] bg-clip-text text-transparent">
-              {" "}
-              Prop Firm
-            </span>
-            <br />
-            Payout Tracking
-          </h1>
-
-          <div className="mb-8">
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 max-w-4xl mx-auto">
-              <div className="glass rounded-lg p-4 border-[#22C55E]/20">
-                <div className="text-2xl font-bold text-[#22C55E]">0</div>
-                <div className="text-xs text-gray-400">Today Approvals</div>
-              </div>
-              <div className="glass rounded-lg p-4 border-[#EF4444]/20">
-                <div className="text-2xl font-bold text-[#EF4444]">0</div>
-                <div className="text-xs text-gray-400">Today Denials</div>
-              </div>
-              <div className="glass rounded-lg p-4 border-[#22C55E]/20">
-                <div className="text-2xl font-bold text-[#22C55E]">0</div>
-                <div className="text-xs text-gray-400">7d Approvals</div>
-              </div>
-              <div className="glass rounded-lg p-4 border-[#EF4444]/20">
-                <div className="text-2xl font-bold text-[#EF4444]">0</div>
-                <div className="text-xs text-gray-400">7d Denials</div>
-              </div>
-              <div className="glass rounded-lg p-4 border-[#22C55E]/20">
-                <div className="text-2xl font-bold text-[#22C55E]">0</div>
-                <div className="text-xs text-gray-400">30d Approvals</div>
-              </div>
-              <div className="glass rounded-lg p-4 border-[#EF4444]/20">
-                <div className="text-2xl font-bold text-[#EF4444]">0</div>
-                <div className="text-xs text-gray-400">30d Denials</div>
-              </div>
-            </div>
-          </div>
-
-          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-            Track real payout approvals and denials across forex prop firms. Submit evidence, read verified reviews,
-            and make informed decisions about your trading career.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Link href="/approvals">
-              <Button size="lg" className="bg-gradient-to-r from-[#22C55E] to-[#00D1B2] text-lg px-8 py-6 text-white">
-                <CheckCircle className="mr-2 w-5 h-5" />
-                Payout Approvals
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-            <Link href="/denials">
-              <Button size="lg" className="bg-gradient-to-r from-[#EF4444] to-[#7C5CFF] text-lg px-8 py-6 text-white">
-                <XCircle className="mr-2 w-5 h-5" />
-                Payout Denials
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-2 justify-center">
-            <Link href="/approvals/submit">
-              <Button variant="outline" className="border-[#22C55E]/30 text-[#22C55E]">
-                <Plus className="mr-2 w-4 h-4" />
-                Submit Approval
-              </Button>
-            </Link>
-            <Link href="/denials/submit">
-              <Button variant="outline" className="border-[#EF4444]/30 text-[#EF4444]">
-                <Plus className="mr-2 w-4 h-4" />
-                Submit Denial
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-    )
-  }
+  // Removed if (!isClient) return (...) block
 
   return (
     <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">

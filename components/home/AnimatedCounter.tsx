@@ -12,21 +12,10 @@ interface AnimatedCounterProps {
 }
 
 export function AnimatedCounter({ value, label, color, borderColor }: AnimatedCounterProps) {
-  const [isClient, setIsClient] = useState(false)
+  // Removed isClient state and useEffect
   const animatedValue = useAnimatedCounter(value, 800)
 
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  if (!isClient) {
-    return (
-      <div className={`glass rounded-lg p-4 ${borderColor}`}>
-        <div className={`text-2xl font-bold ${color}`}>0</div>
-        <div className="text-xs text-gray-400">{label}</div>
-      </div>
-    )
-  }
+  // Removed if (!isClient) return (...) block
 
   return (
     <motion.div 
