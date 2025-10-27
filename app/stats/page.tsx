@@ -22,6 +22,7 @@ import {
   LineChart,
   Line,
 } from "recharts"
+import { useAnimatedCounter } from "@/hooks/use-animated-counter"
 
 type Period = "today" | "7d" | "30d" | "all"
 
@@ -221,31 +222,6 @@ export default function StatsPage() {
   const [ratingDistribution, setRatingDistribution] = useState<RatingDistribution[]>(mockRatingDistribution)
   const [heatmapData, setHeatmapData] = useState<HeatmapData[]>(mockHeatmapData)
   const [trendingFirms, setTrendingFirms] = useState<TrendingFirm[]>(mockTrendingFirms)
-
-  // Animated counter hook
-  const useAnimatedCounter = (end: number, duration = 1000) => {
-    const [count, setCount] = useState(0)
-
-    useEffect(() => {
-      let startTime: number
-      let animationFrame: number
-
-      const animate = (currentTime: number) => {
-        if (!startTime) startTime = currentTime
-        const progress = Math.min((currentTime - startTime) / duration, 1)
-        setCount(Math.floor(progress * end))
-
-        if (progress < 1) {
-          animationFrame = requestAnimationFrame(animate)
-        }
-      }
-
-      animationFrame = requestAnimationFrame(animate)
-      return () => cancelAnimationFrame(animationFrame)
-    }, [end, duration])
-
-    return count
-  }
 
   const animatedApprovals = useAnimatedCounter(globalStats.totalApprovals, 1200)
   const animatedDenials = useAnimatedCounter(globalStats.totalDenials, 800)
