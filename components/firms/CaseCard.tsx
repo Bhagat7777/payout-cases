@@ -4,20 +4,14 @@ import { motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Star } from "lucide-react"
+import type { Database } from "@/lib/supabase/types"
 
-interface Case {
-  id: string
-  firm_id: string
-  type: "approval" | "denial"
-  payout_date: string
-  rating: number
-  title: string | null
-  notes: string | null
-  evidence_urls: string[] | null
-  submitted_by: string | null
-  workflow_status: "submitted" | "under_review" | "published" | "rejected"
-  created_at: string | null
-  published_at: string | null
+type Case = Database["public"]["Tables"]["cases"]["Row"] & {
+  firms: {
+    name: string
+    slug: string
+    logo_url: string | null
+  } | null
 }
 
 interface CaseCardProps {
