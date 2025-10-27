@@ -1,14 +1,13 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { TrendingUp, Menu, X, ChevronDown, CheckCircle, XCircle } from "lucide-react"
-import Link from "next/link"
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, Menu, X } from "lucide-react";
+import Link from "next/link";
 
 export function Navbar() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [submitMenuOpen, setSubmitMenuOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <motion.nav
@@ -44,46 +43,6 @@ export function Navbar() {
             <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-700 bg-transparent">
               Sign In
             </Button>
-
-            <div className="relative">
-              <Button
-                className="bg-gradient-to-r from-[#7C5CFF] to-[#00D1B2] hover:opacity-90 text-white flex items-center"
-                onClick={() => setSubmitMenuOpen(!submitMenuOpen)}
-              >
-                Submit Case
-                <ChevronDown className="ml-2 w-4 h-4" />
-              </Button>
-
-              <AnimatePresence>
-                {submitMenuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 w-48 glass rounded-lg border border-white/10 overflow-hidden"
-                  >
-                    <Link
-                      href="/approvals/submit"
-                      className="block px-4 py-3 text-[#22C55E] hover:bg-white/5 transition-colors"
-                    >
-                      <div className="flex items-center">
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Submit Approval
-                      </div>
-                    </Link>
-                    <Link
-                      href="/denials/submit"
-                      className="block px-4 py-3 text-[#EF4444] hover:bg-white/5 transition-colors"
-                    >
-                      <div className="flex items-center">
-                        <XCircle className="w-4 h-4 mr-2" />
-                        Submit Denial
-                      </div>
-                    </Link>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
           </div>
 
           <button className="md:hidden text-[#E6E7EB]" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -119,13 +78,10 @@ export function Navbar() {
               >
                 Sign In
               </Button>
-              <Button className="w-full bg-gradient-to-r from-[#7C5CFF] to-[#00D1B2] hover:opacity-90 text-white">
-                Submit Case
-              </Button>
             </div>
           </div>
         </motion.div>
       )}
     </motion.nav>
-  )
+  );
 }

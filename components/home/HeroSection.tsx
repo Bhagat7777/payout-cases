@@ -1,44 +1,27 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { motion, useScroll, useTransform } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { CheckCircle, XCircle, ArrowRight, Plus } from "lucide-react"
-import Link from "next/link"
-import { AnimatedCounter } from "@/components/home/AnimatedCounter"
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, XCircle, ArrowRight, Plus } from "lucide-react";
+import Link from "next/link";
 
 export function HeroSection() {
-  const [liveStats, setLiveStats] = useState({
+  const [liveStats] = useState({
     todayApprovals: 23,
     todayDenials: 7,
     weekApprovals: 156,
     weekDenials: 42,
     monthApprovals: 687,
     monthDenials: 198,
-  })
-  // Removed isClient state and useEffect
-
-  const { scrollY } = useScroll()
-  const y1 = useTransform(scrollY, [0, 300], [0, 50])
-  const y2 = useTransform(scrollY, [0, 300], [0, -50])
-
-  // Removed if (!isClient) return (...) block
+  });
 
   return (
     <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      <motion.div
-        style={{ y: y1 }}
-        className="absolute inset-0 bg-gradient-to-br from-[#7C5CFF]/10 via-transparent to-[#00D1B2]/10 animate-gradient"
-      />
-      <motion.div
-        style={{ y: y2 }}
-        className="absolute top-20 right-20 w-72 h-72 bg-[#7C5CFF]/20 rounded-full blur-3xl animate-float"
-      />
-      <motion.div
-        style={{ y: y1, animationDelay: "1s" }}
-        className="absolute bottom-20 left-20 w-96 h-96 bg-[#00D1B2]/20 rounded-full blur-3xl animate-float"
-      />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#7C5CFF]/10 via-transparent to-[#00D1B2]/10 animate-gradient" />
+      <div className="absolute top-20 right-20 w-72 h-72 bg-[#7C5CFF]/20 rounded-full blur-3xl animate-float" />
+      <div className="absolute bottom-20 left-20 w-96 h-96 bg-[#00D1B2]/20 rounded-full blur-3xl animate-float" />
 
       <div className="max-w-7xl mx-auto text-center relative z-10">
         <motion.div
@@ -67,52 +50,6 @@ export function HeroSection() {
           <br />
           Payout Tracking
         </motion.h1>
-
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-          className="mb-8"
-        >
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 max-w-4xl mx-auto">
-            <AnimatedCounter 
-              value={liveStats.todayApprovals} 
-              label="Today Approvals" 
-              color="text-[#22C55E]" 
-              borderColor="border-[#22C55E]/20" 
-            />
-            <AnimatedCounter 
-              value={liveStats.todayDenials} 
-              label="Today Denials" 
-              color="text-[#EF4444]" 
-              borderColor="border-[#EF4444]/20" 
-            />
-            <AnimatedCounter 
-              value={liveStats.weekApprovals} 
-              label="7d Approvals" 
-              color="text-[#22C55E]" 
-              borderColor="border-[#22C55E]/20" 
-            />
-            <AnimatedCounter 
-              value={liveStats.weekDenials} 
-              label="7d Denials" 
-              color="text-[#EF4444]" 
-              borderColor="border-[#EF4444]/20" 
-            />
-            <AnimatedCounter 
-              value={liveStats.monthApprovals} 
-              label="30d Approvals" 
-              color="text-[#22C55E]" 
-              borderColor="border-[#22C55E]/20" 
-            />
-            <AnimatedCounter 
-              value={liveStats.monthDenials} 
-              label="30d Denials" 
-              color="text-[#EF4444]" 
-              borderColor="border-[#EF4444]/20" 
-            />
-          </div>
-        </motion.div>
 
         <motion.p 
           initial={{ opacity: 0, y: 20 }}
@@ -179,5 +116,5 @@ export function HeroSection() {
         </motion.div>
       </div>
     </section>
-  )
+  );
 }

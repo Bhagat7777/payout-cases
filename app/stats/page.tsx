@@ -8,6 +8,7 @@ import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, 
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from "recharts";
+import { TrendingUp, CheckCircle, XCircle, BarChart3 } from "lucide-react";
 
 // Mock data - replace with actual API data
 const mockLineData = [
@@ -86,7 +87,7 @@ export default function StatsDashboardPage() {
                   </h3>
                 </div>
                 <div className="bg-blue-500/10 p-3 rounded-lg">
-                  <div className="w-8 h-8 bg-blue-500 rounded-md"></div>
+                  <TrendingUp className="w-8 h-8 text-blue-500" />
                 </div>
               </div>
             </CardContent>
@@ -102,7 +103,7 @@ export default function StatsDashboardPage() {
                   </h3>
                 </div>
                 <div className="bg-green-500/10 p-3 rounded-lg">
-                  <div className="w-8 h-8 bg-green-500 rounded-md"></div>
+                  <CheckCircle className="w-8 h-8 text-green-500" />
                 </div>
               </div>
             </CardContent>
@@ -118,7 +119,7 @@ export default function StatsDashboardPage() {
                   </h3>
                 </div>
                 <div className="bg-purple-500/10 p-3 rounded-lg">
-                  <div className="w-8 h-8 bg-purple-500 rounded-md"></div>
+                  <XCircle className="w-8 h-8 text-purple-500" />
                 </div>
               </div>
             </CardContent>

@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { CaseFeed } from "@/components/cases/CaseFeed"
+import { CaseFeed } from "@/components/cases/CaseFeed";
 
 export default function ApprovalsPage() {
-  return <CaseFeed type="approval" />
+  return <CaseFeed type="approval" />;
 }
