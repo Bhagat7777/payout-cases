@@ -1,22 +1,23 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { GeistSans } from "geist/font/sans"
-import { GeistMono } from "geist/font/mono"
-import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/sonner"
+import type React from "react";
+import type { Metadata } from "next";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
+import { SocketProvider } from "@/components/providers/socket-provider";
 
 export const metadata: Metadata = {
   title: "Payout Cases — Prop Firm Payout Reviews",
   description:
     "Discover real payout experiences from prop trading firms. Read authentic reviews, share your story, and make informed decisions about your trading career.",
   generator: "v0.dev",
-}
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
@@ -31,10 +32,12 @@ html {
       </head>
       <body className="antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          {children}
+          <SocketProvider>
+            {children}
+          </SocketProvider>
           <Toaster />
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }
