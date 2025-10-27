@@ -11,6 +11,7 @@ import { ReviewsSection } from "@/components/home/ReviewsSection"
 import { CallToActionSection } from "@/components/home/CallToActionSection"
 import { Footer } from "@/components/home/Footer"
 import { Navbar } from "@/components/home/Navbar"
+import { ClientOnly } from "@/components/ClientOnly"
 
 export default function HomePage() {
   const [isVisible, setIsVisible] = useState(true)
@@ -18,14 +19,16 @@ export default function HomePage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#0B0F17" }}>
       <SupabaseConfigChecker />
-      <Navbar />
-      <HeroSection />
-      <StatsSection />
-      <FeaturesSection />
-      <HowItWorksSection />
-      <ReviewsSection />
-      <CallToActionSection />
-      <Footer />
+      <ClientOnly>
+        <Navbar />
+        <HeroSection />
+        <StatsSection />
+        <FeaturesSection />
+        <HowItWorksSection />
+        <ReviewsSection />
+        <CallToActionSection />
+        <Footer />
+      </ClientOnly>
     </div>
   )
 }
