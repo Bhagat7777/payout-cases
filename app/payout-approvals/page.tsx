@@ -53,6 +53,7 @@ export default function PayoutApprovalsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [approvals, setApprovals] = useState<Approval[]>(mockApprovals);
+  const [newItems, setNewItems] = useState<Set<string>>(new Set());
   const { socket, isConnected } = useSocket();
   
   // Filter approvals based on search and date range
@@ -74,6 +75,16 @@ export default function PayoutApprovalsPage() {
 
     socket.on("approvalUpdate", (newApproval: Approval) => {
       setApprovals(prev => [newApproval, ...prev]);
+      setNewItems(prev => new Set(prev).add(newApproval.id));
+      
+      // Remove highlight after 5 seconds
+      setTimeout(() => {
+        setNewItems(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(newApproval.id);
+          return newSet;
+        });
+      }, 5000);
     });
 
     return () => {
@@ -199,7 +210,9 @@ export default function PayoutApprovalsPage() {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, height: 0 }}
                           transition={{ duration: 0.3 }}
-                          className="border-b border-slate-700 hover:bg-slate-700/30"
+                          className={`border-b border-slate-700 hover:bg-slate-700/30 ${
+                            newItems.has(approval.id) ? "bg-green-500/10 animate-pulse" : ""
+                          }`}
                         >
                           <td className="py-4 px-4 text-white">{approval.traderName}</td>
                           <td className="py-4 px-4">

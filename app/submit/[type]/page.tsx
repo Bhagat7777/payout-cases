@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Upload, CheckCircle, XCircle } from "lucide-react";
+import { useSocket } from "@/components/providers/socket-provider";
 
 interface FormData {
   traderName: string;
@@ -23,6 +24,7 @@ interface FormData {
 
 export default function SubmitCasePage({ params }: { params: { type: string } }) {
   const router = useRouter();
+  const { socket } = useSocket();
   const isApproval = params.type === "approval";
   const [formData, setFormData] = useState<FormData>({
     traderName: "",
@@ -79,6 +81,23 @@ export default function SubmitCasePage({ params }: { params: { type: string } })
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Emit socket event for real-time update
+      if (socket) {
+        const newCase = {
+          id: Math.random().toString(36).substr(2, 9),
+          ...formData,
+          amount: Number(formData.amount),
+          type: params.type,
+          status: isApproval ? "completed" : "pending"
+        };
+        
+        if (isApproval) {
+          socket.emit("newApproval", newCase);
+        } else {
+          socket.emit("newDenial", newCase);
+        }
+      }
       
       toast.success(
         isApproval 

@@ -6,6 +6,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { SocketProvider } from "@/components/providers/socket-provider";
+import { NewItemNotification } from "@/components/notifications/new-item-notification";
 
 export const metadata: Metadata = {
   title: "Payout Cases — Prop Firm Payout Reviews",
@@ -34,6 +35,7 @@ html {
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <SocketProvider>
             {children}
+            <NewItemNotification />
           </SocketProvider>
           <Toaster />
         </ThemeProvider>

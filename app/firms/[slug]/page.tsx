@@ -55,7 +55,7 @@ interface RatingDistribution {
 
 export default function FirmDetailPage() {
   const params = useParams()
-  const slug = params.slug as string
+  const slug = params?.slug as string
 
   const [firm, setFirm] = useState<Firm | null>(null)
   const [cases, setCases] = useState<Case[]>([])

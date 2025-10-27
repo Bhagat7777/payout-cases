@@ -43,11 +43,13 @@ function SubmitApprovalForm({ firms, type }: { firms: any[]; type: "approval" | 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    const firmSlug = searchParams.get("firm")
-    if (firmSlug) {
-      const firm = firms.find((f) => f.value === firmSlug)
-      if (firm) {
-        setFormData((prev) => ({ ...prev, firmId: firm.value }))
+    if (searchParams) {
+      const firmSlug = searchParams.get("firm")
+      if (firmSlug) {
+        const firm = firms.find((f) => f.value === firmSlug)
+        if (firm) {
+          setFormData((prev) => ({ ...prev, firmId: firm.value }))
+        }
       }
     }
   }, [searchParams, firms])

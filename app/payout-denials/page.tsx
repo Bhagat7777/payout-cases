@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Calendar, XCircle, TrendingDown, Plus } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
+import { useSocket } from "@/components/providers/socket-provider";
 
 // Mock data structure - replace with actual API response
 interface Denial {
@@ -55,17 +56,10 @@ const mockDenials: Denial[] = [
 export default function PayoutDenialsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
+  const [denials, setDenials] = useState<Denial[]>(mockDenials);
+  const [newItems, setNewItems] = useState<Set<string>>(new Set());
+  const { socket, isConnected } = useSocket();
   
-  // In a real implementation, this would fetch from your API
-  // const { data: denials, error } = useSWR<Denial[]>("/api/denials", fetcher, {
-  //   refreshInterval: 5000 // Refresh every 5 seconds
-  // });
-  
-  // Using mock data for now
-  const denials = mockDenials;
-  const error = null;
-  const isLoading = false;
-
   // Filter denials based on search and date range
   const filteredDenials = denials?.filter(denial => {
     const matchesSearch = 
@@ -79,6 +73,29 @@ export default function PayoutDenialsPage() {
     
     return matchesSearch && matchesDateRange;
   }) || [];
+
+  // Listen for real-time updates
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("denialUpdate", (newDenial: Denial) => {
+      setDenials(prev => [newDenial, ...prev]);
+      setNewItems(prev => new Set(prev).add(newDenial.id));
+      
+      // Remove highlight after 5 seconds
+      setTimeout(() => {
+        setNewItems(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(newDenial.id);
+          return newSet;
+        });
+      }, 5000);
+    });
+
+    return () => {
+      socket.off("denialUpdate");
+    };
+  }, [socket]);
 
   // Status badge component
   const StatusBadge = ({ status }: { status: string }) => {
@@ -108,6 +125,12 @@ export default function PayoutDenialsPage() {
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Payout Denials</h1>
               <p className="text-slate-400">
                 {denials?.length || 0} denials reported this week
+                {isConnected && (
+                  <span className="ml-2 flex items-center">
+                    <span className="flex w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+                    Live
+                  </span>
+                )}
               </p>
             </div>
             <Link href="/submit/denial">
@@ -172,66 +195,60 @@ export default function PayoutDenialsPage() {
               <CardTitle className="text-white">Recent Denials</CardTitle>
             </CardHeader>
             <CardContent>
-              {error && (
-                <div className="text-red-400 p-4">Failed to load denials. Please try again later.</div>
-              )}
-              
-              {isLoading ? (
-                <div className="p-4 text-center text-slate-400">Loading denials...</div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-slate-700">
-                        <th className="py-3 px-4 text-left text-slate-400 font-medium">Trader</th>
-                        <th className="py-3 px-4 text-left text-slate-400 font-medium">Prop Firm</th>
-                        <th className="py-3 px-4 text-left text-slate-400 font-medium">Reason</th>
-                        <th className="py-3 px-4 text-left text-slate-400 font-medium">Amount</th>
-                        <th className="py-3 px-4 text-left text-slate-400 font-medium">Date</th>
-                        <th className="py-3 px-4 text-left text-slate-400 font-medium">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <AnimatePresence>
-                        {filteredDenials.map((denial) => (
-                          <motion.tr
-                            key={denial.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="border-b border-slate-700 hover:bg-slate-700/30"
-                          >
-                            <td className="py-4 px-4 text-white">{denial.traderName}</td>
-                            <td className="py-4 px-4">
-                              <div className="flex items-center">
-                                <div className="bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center mr-2">
-                                  <span className="text-xs font-bold text-slate-300">
-                                    {denial.propFirm.substring(0, 2)}
-                                  </span>
-                                </div>
-                                <span className="text-white">{denial.propFirm}</span>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-700">
+                      <th className="py-3 px-4 text-left text-slate-400 font-medium">Trader</th>
+                      <th className="py-3 px-4 text-left text-slate-400 font-medium">Prop Firm</th>
+                      <th className="py-3 px-4 text-left text-slate-400 font-medium">Reason</th>
+                      <th className="py-3 px-4 text-left text-slate-400 font-medium">Amount</th>
+                      <th className="py-3 px-4 text-left text-slate-400 font-medium">Date</th>
+                      <th className="py-3 px-4 text-left text-slate-400 font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <AnimatePresence>
+                      {filteredDenials.map((denial) => (
+                        <motion.tr
+                          key={denial.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className={`border-b border-slate-700 hover:bg-slate-700/30 ${
+                            newItems.has(denial.id) ? "bg-red-500/10 animate-pulse" : ""
+                          }`}
+                        >
+                          <td className="py-4 px-4 text-white">{denial.traderName}</td>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center">
+                              <div className="bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center mr-2">
+                                <span className="text-xs font-bold text-slate-300">
+                                  {denial.propFirm.substring(0, 2)}
+                                </span>
                               </div>
-                            </td>
-                            <td className="py-4 px-4 text-slate-300 max-w-xs truncate">{denial.reason}</td>
-                            <td className="py-4 px-4 text-red-400 font-medium">
-                              ${denial.amount.toLocaleString()}
-                            </td>
-                            <td className="py-4 px-4 text-slate-300">
-                              {format(new Date(denial.date), "MMM dd, yyyy")}
-                            </td>
-                            <td className="py-4 px-4">
-                              <StatusBadge status={denial.status} />
-                            </td>
-                          </motion.tr>
-                        ))}
-                      </AnimatePresence>
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                              <span className="text-white">{denial.propFirm}</span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-4 text-slate-300 max-w-xs truncate">{denial.reason}</td>
+                          <td className="py-4 px-4 text-red-400 font-medium">
+                            ${denial.amount.toLocaleString()}
+                          </td>
+                          <td className="py-4 px-4 text-slate-300">
+                            {format(new Date(denial.date), "MMM dd, yyyy")}
+                          </td>
+                          <td className="py-4 px-4">
+                            <StatusBadge status={denial.status} />
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
+                  </tbody>
+                </table>
+              </div>
               
-              {filteredDenials.length === 0 && !isLoading && (
+              {filteredDenials.length === 0 && (
                 <div className="text-center py-12">
                   <TrendingDown className="w-12 h-12 text-slate-500 mx-auto mb-4" />
                   <p className="text-slate-400">No denials found matching your criteria</p>
