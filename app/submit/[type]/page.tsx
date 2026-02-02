@@ -121,7 +121,7 @@ export default function SubmitCasePage({ params }: { params: { type: string } })
       
       // Redirect to appropriate page
       setTimeout(() => {
-        router.push(isApproval ? "/payout-approvals" : "/payout-denials");
+        router.push(isApproval ? "/approvals" : "/denials");
       }, 1500);
     } catch (error) {
       toast.error("Submission failed", {
