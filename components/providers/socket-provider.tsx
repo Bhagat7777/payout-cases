@@ -28,7 +28,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Initialize socket connection only on the client side
     const socketInstance = ClientIO(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000", {
-      path: "/api/socket/io",
+      path: "/api/socket", // Corrected path
       addTrailingSlash: false,
     });
 
