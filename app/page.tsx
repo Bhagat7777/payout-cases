@@ -10,20 +10,23 @@ import { ReviewsSection } from "@/components/home/ReviewsSection";
 import { CallToActionSection } from "@/components/home/CallToActionSection";
 import { Footer } from "@/components/home/Footer";
 import { Navbar } from "@/components/home/Navbar";
+import { AppWrapper } from "@/components/AppWrapper";
 
 export default function HomePage() {
   const [isVisible, setIsVisible] = useState(true);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#0B0F17" }}>
-      <Navbar />
-      <HeroSection />
-      <StatsSection />
-      <FeaturesSection />
-      <HowItWorksSection />
-      <ReviewsSection />
-      <CallToActionSection />
-      <Footer />
-    </div>
+    <AppWrapper>
+      <div className="min-h-screen" style={{ backgroundColor: "#0B0F17" }}>
+        <Navbar />
+        <HeroSection />
+        <StatsSection />
+        <FeaturesSection />
+        <HowItWorksSection />
+        <ReviewsSection />
+        <CallToActionSection />
+        <Footer />
+      </div>
+    </AppWrapper>
   );
 }
