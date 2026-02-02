@@ -18,17 +18,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <head>
-        <style>{`
-html {
-  font-family: ${GeistSans.style.fontFamily};
-  --font-sans: ${GeistSans.variable};
-  --font-mono: ${GeistMono.variable};
-}
-        `}</style>
-      </head>
-      <body className="antialiased">
+    <html 
+      lang="en" 
+      className={`${GeistSans.variable} ${GeistMono.variable} dark`} 
+      suppressHydrationWarning
+    >
+      <body className="antialiased font-sans">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           {children}
           <Toaster />
