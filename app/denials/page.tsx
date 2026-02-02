@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Calendar, XCircle, TrendingDown, Plus } from "lucide-react";
+import { Search, Calendar, XCircle, TrendingDown, Plus, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
 import { useSocket } from "@/components/providers/socket-provider";
@@ -120,6 +120,10 @@ export default function PayoutDenialsPage() {
           transition={{ duration: 0.5 }}
           className="mb-8"
         >
+          <Link href="/" className="inline-flex items-center text-gray-400 hover:text-[#E6E7EB] transition-colors mb-6">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Link>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Payout Denials</h1>
