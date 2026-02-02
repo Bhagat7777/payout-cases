@@ -40,9 +40,11 @@ export function Navbar() {
             <Link href="/stats" className="text-gray-300 hover:text-[#E6E7EB] transition-colors">
               Stats
             </Link>
-            <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-700 bg-transparent">
-              Sign In
-            </Button>
+            <Link href="/auth/login">
+              <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-700 bg-transparent">
+                Sign In
+              </Button>
+            </Link>
           </div>
 
           <button className="md:hidden text-[#E6E7EB]" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -72,12 +74,14 @@ export function Navbar() {
               Stats
             </Link>
             <div className="pt-4 space-y-2">
-              <Button
-                variant="outline"
-                className="w-full border-gray-600 text-gray-300 hover:bg-gray-700 bg-transparent"
-              >
-                Sign In
-              </Button>
+              <Link href="/auth/login">
+                <Button
+                  variant="outline"
+                  className="w-full border-gray-600 text-gray-300 hover:bg-gray-700 bg-transparent"
+                >
+                  Sign In
+                </Button>
+              </Link>
             </div>
           </div>
         </motion.div>
