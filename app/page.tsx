@@ -1,7 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { HeroSection } from "@/components/home/HeroSection";
 import { StatsSection } from "@/components/home/StatsSection";
 import { FeaturesSection } from "@/components/home/FeaturesSection";
@@ -13,8 +11,6 @@ import { Navbar } from "@/components/home/Navbar";
 import { AppWrapper } from "@/components/AppWrapper";
 
 export default function HomePage() {
-  const [isVisible, setIsVisible] = useState(true);
-
   return (
     <AppWrapper>
       <div className="min-h-screen" style={{ backgroundColor: "#0B0F17" }}>
