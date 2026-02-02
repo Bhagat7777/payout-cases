@@ -122,7 +122,7 @@ export default function FirmDetailPage() {
           { date: "2024-01-11", approvals: 15, denials: 2 },
           { date: "2024-01-12", approvals: 18, denials: 1 },
           { date: "2024-01-13", approvals: 14, denials: 3 },
-          { date: "2024-01-14", approvals: 22, denials: 2 },
+          { date: "2024-01-14", approvals: 22, denials: 3 },
           { date: "2024-01-15", approvals: 12, denials: 1 },
         ]
         setTimelineData(mockTimelineData)

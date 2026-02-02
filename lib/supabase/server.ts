@@ -10,7 +10,7 @@ import { SupabaseClient } from "@supabase/supabase-js"
  */
 export async function createServerClient() {
   // Only create client in server environment
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     // Return a minimal mock for client-side calls
     return {
       auth: {
