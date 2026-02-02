@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Upload, X, Star, Calendar, Building2, FileText, ImageIcon, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { submitCase } from "@/lib/actions/cases";
+import { toast } from "sonner";
 
 export default function SubmitApprovalPage() {
   const router = useRouter();
@@ -66,11 +68,38 @@ export default function SubmitApprovalPage() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate submission
-    setTimeout(() => {
+    const form = e.currentTarget as HTMLFormElement;
+    const data = new FormData(form);
+    
+    // Append files to FormData
+    files.forEach((file) => {
+      data.append("files", file);
+    });
+    
+    // Append other required fields
+    data.append("type", "approval");
+    data.append("rating", formData.rating.toString());
+    data.append("payoutDate", formData.payoutDate);
+    data.append("firmId", formData.firmId);
+    data.append("title", formData.title);
+    data.append("notes", formData.notes);
+    data.append("amount", formData.amount); // Although 'amount' isn't in the DB schema, we pass it for consistency if needed later.
+
+    try {
+      // Call the server action
+      await submitCase(data);
+      toast.success("Approval case submitted successfully!", {
+        description: "Your case is now under review.",
+      });
+      // Server action handles redirection and revalidation
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast.error("Submission failed", {
+        description: (error as Error).message || "Please check your inputs and try again.",
+      });
+    } finally {
       setIsSubmitting(false);
-      router.push("/approvals");
-    }, 1500);
+    }
   };
 
   return (
@@ -120,6 +149,7 @@ export default function SubmitApprovalPage() {
                   </Label>
                   <Input
                     id="firmId"
+                    name="firmId"
                     value={formData.firmId}
                     onChange={(e) => setFormData({ ...formData, firmId: e.target.value })}
                     placeholder="Enter prop firm name"
@@ -135,6 +165,7 @@ export default function SubmitApprovalPage() {
                   </Label>
                   <Input
                     id="payoutDate"
+                    name="payoutDate"
                     type="date"
                     value={formData.payoutDate}
                     onChange={(e) => setFormData({ ...formData, payoutDate: e.target.value })}
@@ -176,6 +207,7 @@ export default function SubmitApprovalPage() {
                   </Label>
                   <Input
                     id="amount"
+                    name="amount"
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                     placeholder="e.g., $2,500"
@@ -192,6 +224,7 @@ export default function SubmitApprovalPage() {
                 </Label>
                 <Input
                   id="title"
+                  name="title"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="Brief summary of your experience"
@@ -207,6 +240,7 @@ export default function SubmitApprovalPage() {
                 </Label>
                 <Textarea
                   id="notes"
+                  name="notes"
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="Share details about your payout experience, timeline, support quality, etc."
