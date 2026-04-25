@@ -2,10 +2,10 @@ import { createServerClient } from "@/lib/supabase/server"
 import { createBrowserClient } from "@/lib/supabase/client"
 import { SupabaseClient } from "@supabase/supabase-js"
 
-export async function getFirms() {
+export async function getFirms(onlyApproved = false) {
   const supabase = await createServerClient()
 
-  const { data: firms, error } = await (supabase as SupabaseClient)
+  let query = (supabase as SupabaseClient)
     .from("firms")
     .select(`
       *,
@@ -21,9 +21,18 @@ export async function getFirms() {
     `)
     .order("name")
 
+  const { data: firms, error } = await query
+
   if (error) {
     console.error("Error fetching firms:", error)
     return []
+  }
+
+  if (onlyApproved) {
+    return firms.filter(f => {
+      const agg = Array.isArray(f.firms_agg) ? f.firms_agg[0] : f.firms_agg;
+      return (agg?.approvals_total || 0) > 0;
+    });
   }
 
   return firms || []
@@ -31,7 +40,6 @@ export async function getFirms() {
 
 export async function getFirmBySlug(slug: string) {
   const supabase = await createServerClient()
-
   const { data: firm, error } = await (supabase as SupabaseClient)
     .from("firms")
     .select(`
@@ -51,57 +59,6 @@ export async function getFirmBySlug(slug: string) {
     .eq("slug", slug)
     .single()
 
-  if (error) {
-    console.error("Error fetching firm:", error)
-    return null
-  }
-
+  if (error) return null
   return firm
-}
-
-export async function getFirmCases(firmId: string, type?: "approval" | "denial", limit = 20) {
-  const supabase = await createServerClient()
-
-  let query = (supabase as SupabaseClient)
-    .from("cases")
-    .select(`
-      *,
-      firms (name, slug, logo_url)
-    `)
-    .eq("firm_id", firmId)
-    .eq("workflow_status", "published")
-    .order("published_at", { ascending: false })
-    .limit(limit)
-
-  if (type) {
-    query = query.eq("type", type)
-  }
-
-  const { data: cases, error } = await query
-
-  if (error) {
-    console.error("Error fetching firm cases:", error)
-    return []
-  }
-
-  return cases || []
-}
-
-export function subscribeToFirmUpdates(callback: (payload: any) => void) {
-  const supabase = createBrowserClient()
-
-  const subscription = supabase
-    .channel("firms_agg_changes")
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "firms_agg",
-      },
-      callback,
-    )
-    .subscribe()
-
-  return subscription
 }

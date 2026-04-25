@@ -3,7 +3,6 @@ import { SupabaseClient } from "@supabase/supabase-js"
 import { format, subDays } from "date-fns"
 import type { GlobalStats, TimelineData, TopFirm, RatingDistribution } from "@/lib/mockData"
 
-// Helper to calculate global stats
 export async function getGlobalStats(): Promise<GlobalStats> {
   const supabase = await createServerClient()
 
@@ -14,7 +13,6 @@ export async function getGlobalStats(): Promise<GlobalStats> {
 
   if (totalError) {
     console.error("Error fetching global stats:", totalError)
-    // Return zeroed stats on error
     return { totalApprovals: 0, totalDenials: 0, approvalRate: 0, avgRating: 0 }
   }
 
@@ -31,7 +29,6 @@ export async function getGlobalStats(): Promise<GlobalStats> {
   }
 }
 
-// Helper to generate sparkline data (last 7 days)
 export async function getSparklineData(): Promise<TimelineData[]> {
   const supabase = await createServerClient()
   const sevenDaysAgo = format(subDays(new Date(), 7), 'yyyy-MM-dd')
@@ -43,14 +40,9 @@ export async function getSparklineData(): Promise<TimelineData[]> {
     .gte("published_at", sevenDaysAgo)
     .order("published_at", { ascending: true })
 
-  if (error) {
-    console.error("Error fetching sparkline data:", error)
-    return []
-  }
+  if (error) return []
 
   const dailyData: { [key: string]: { approvals: number; denials: number } } = {}
-  
-  // Initialize data points for the last 7 days
   for (let i = 0; i < 7; i++) {
     const date = format(subDays(new Date(), 6 - i), 'yyyy-MM-dd')
     dailyData[date] = { approvals: 0, denials: 0 }
@@ -60,11 +52,8 @@ export async function getSparklineData(): Promise<TimelineData[]> {
     if (c.published_at) {
       const dateKey = format(new Date(c.published_at), 'yyyy-MM-dd')
       if (dailyData[dateKey]) {
-        if (c.type === 'approval') {
-          dailyData[dateKey].approvals += 1
-        } else if (c.type === 'denial') {
-          dailyData[dateKey].denials += 1
-        }
+        if (c.type === 'approval') dailyData[dateKey].approvals += 1
+        else if (c.type === 'denial') dailyData[dateKey].denials += 1
       }
     }
   })
@@ -76,7 +65,6 @@ export async function getSparklineData(): Promise<TimelineData[]> {
   }))
 }
 
-// Fetch top firms based on ranking score
 export async function getTopFirms(limit: number = 5): Promise<TopFirm[]> {
   const supabase = await createServerClient()
 
@@ -95,18 +83,14 @@ export async function getTopFirms(limit: number = 5): Promise<TopFirm[]> {
         ranking_score
       )
     `)
+    .not('firms_agg', 'is', null)
     .order("ranking_score", { foreignTable: "firms_agg", ascending: false })
     .limit(limit)
 
-  if (error) {
-    console.error("Error fetching top firms:", error)
-    return []
-  }
+  if (error) return []
 
   return data.map((firm, index) => {
-    // firms_agg is returned as an array of one element in this query structure
     const agg = Array.isArray(firm.firms_agg) ? firm.firms_agg[0] : firm.firms_agg
-    
     return {
       rank: index + 1,
       name: firm.name,
@@ -120,28 +104,18 @@ export async function getTopFirms(limit: number = 5): Promise<TopFirm[]> {
   })
 }
 
-// Calculate rating distribution from all published cases
 export async function getRatingDistribution(): Promise<RatingDistribution[]> {
   const supabase = await createServerClient()
-
   const { data: cases, error } = await (supabase as SupabaseClient)
     .from("cases")
     .select("rating")
     .eq("workflow_status", "published")
 
-  if (error) {
-    console.error("Error fetching rating distribution:", error)
-    return []
-  }
+  if (error) return []
 
   const totalCases = cases.length
   const distribution: { [key: number]: number } = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-
-  cases.forEach(c => {
-    if (c.rating && c.rating >= 1 && c.rating <= 5) {
-      distribution[c.rating] += 1
-    }
-  })
+  cases.forEach(c => { if (c.rating) distribution[c.rating] += 1 })
 
   return Object.entries(distribution).map(([rating, count]) => ({
     rating: Number(rating),
