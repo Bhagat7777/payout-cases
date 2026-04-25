@@ -1,4 +1,5 @@
 import { createServerClient as createSupabaseServerClient } from "@supabase/ssr"
+import { cookies } from "next/headers"
 import { supabaseConfig } from "./config"
 import { SupabaseClient } from "@supabase/supabase-js"
 
@@ -79,8 +80,6 @@ export async function createServerClient() {
     } as unknown as SupabaseClient
   }
   
-  // Import inside function to avoid import error in client context
-  const { cookies } = await import("next/headers")
   const cookieStore = await cookies()
 
   return createSupabaseServerClient(
