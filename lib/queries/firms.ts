@@ -1,11 +1,7 @@
-import { createServerClient } from "@/lib/supabase/server"
-import { createBrowserClient } from "@/lib/supabase/client"
 import { SupabaseClient } from "@supabase/supabase-js"
 
-export async function getFirms(onlyApproved = false) {
-  const supabase = await createServerClient()
-
-  let query = (supabase as SupabaseClient)
+export async function getFirms(supabase: SupabaseClient, onlyApproved = false) {
+  let query = supabase
     .from("firms")
     .select(`
       *,
@@ -38,9 +34,8 @@ export async function getFirms(onlyApproved = false) {
   return firms || []
 }
 
-export async function getFirmBySlug(slug: string) {
-  const supabase = await createServerClient()
-  const { data: firm, error } = await (supabase as SupabaseClient)
+export async function getFirmBySlug(supabase: SupabaseClient, slug: string) {
+  const { data: firm, error } = await supabase
     .from("firms")
     .select(`
       *,

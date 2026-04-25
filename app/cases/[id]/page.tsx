@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation"
-import { motion } from "framer-motion"
 import {
   CheckCircle,
   XCircle,
@@ -8,18 +7,18 @@ import {
   FileText,
   LinkIcon,
   User,
-  Loader2,
   ArrowLeft,
-  ExternalLink, // <-- Added import
+  ExternalLink,
 } from "lucide-react"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { getCaseById } from "@/lib/queries/cases"
 import { getSignedEvidenceUrls } from "@/lib/actions/storage"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { createServerClient } from "@/lib/supabase/server"
 
 interface CaseDetailPageProps {
   params: {
@@ -48,7 +47,8 @@ const renderStars = (rating: number, isApproval: boolean) => {
 }
 
 export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
-  const caseItem = await getCaseById(params.id)
+  const supabase = await createServerClient();
+  const caseItem = await getCaseById(supabase, params.id)
 
   if (!caseItem) {
     notFound()
@@ -65,7 +65,7 @@ export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#0B0F17" }}>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <Link
             href={isApproval ? "/approvals" : "/denials"}
             className="inline-flex items-center text-gray-400 hover:text-[#E6E7EB] transition-colors mb-6"
@@ -175,11 +175,8 @@ export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
                 {evidenceUrls.length > 0 ? (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {evidenceUrls.map((url, index) => (
-                      <motion.div
+                      <div
                         key={index}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        whileHover={{ scale: 1.05 }}
                         className="relative group aspect-square overflow-hidden rounded-lg shadow-lg"
                       >
                         <img
@@ -198,7 +195,7 @@ export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
                             View Full Image
                           </Button>
                         </a>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 ) : (
@@ -207,7 +204,7 @@ export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       </div>
     </div>
   )

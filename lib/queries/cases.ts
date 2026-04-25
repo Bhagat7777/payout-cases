@@ -1,11 +1,8 @@
-import { createServerClient } from "@/lib/supabase/server"
-import { createBrowserClient } from "@/lib/supabase/client"
 import { SupabaseClient } from "@supabase/supabase-js"
+import { createBrowserClient } from "@/lib/supabase/client"
 
-export async function getCases(type?: "approval" | "denial", limit = 20, offset = 0) {
-  const supabase = await createServerClient()
-
-  let query = (supabase as SupabaseClient)
+export async function getCases(supabase: SupabaseClient, type?: "approval" | "denial", limit = 20, offset = 0) {
+  let query = supabase
     .from("cases")
     .select(`
       *,
@@ -30,10 +27,8 @@ export async function getCases(type?: "approval" | "denial", limit = 20, offset 
   return cases || []
 }
 
-export async function getCaseById(id: string) {
-  const supabase = await createServerClient()
-
-  const { data: case_, error } = await (supabase as SupabaseClient)
+export async function getCaseById(supabase: SupabaseClient, id: string) {
+  const { data: case_, error } = await supabase
     .from("cases")
     .select(`
       *,
@@ -52,8 +47,8 @@ export async function getCaseById(id: string) {
   return case_
 }
 
-export async function getCasesByType(supabase: any, type: "approval" | "denial", limit = 20, offset = 0) {
-  const query = (supabase as SupabaseClient)
+export async function getCasesByType(supabase: SupabaseClient, type: "approval" | "denial", limit = 20, offset = 0) {
+  const query = supabase
     .from("cases")
     .select(`
       *,

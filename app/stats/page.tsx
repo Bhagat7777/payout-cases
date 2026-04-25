@@ -11,13 +11,16 @@ import { Navbar } from "@/components/home/Navbar";
 import { AppWrapper } from "@/components/AppWrapper";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { createServerClient } from "@/lib/supabase/server";
 
 export default async function StatsDashboardPage() {
+  const supabase = await createServerClient();
+
   const [globalStats, sparklineData, topFirms, ratingDistribution] = await Promise.all([
-    getGlobalStats(),
-    getSparklineData(),
-    getTopFirms(5),
-    getRatingDistribution(),
+    getGlobalStats(supabase),
+    getSparklineData(supabase),
+    getTopFirms(supabase, 5),
+    getRatingDistribution(supabase),
   ]);
 
   const statsWithSparkline = {

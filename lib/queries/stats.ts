@@ -1,12 +1,9 @@
-import { createServerClient } from "@/lib/supabase/server"
 import { SupabaseClient } from "@supabase/supabase-js"
 import { format, subDays } from "date-fns"
 import type { GlobalStats, TimelineData, TopFirm, RatingDistribution } from "@/lib/mockData"
 
-export async function getGlobalStats(): Promise<GlobalStats> {
-  const supabase = await createServerClient()
-
-  const { data: totalStats, error: totalError } = await (supabase as SupabaseClient)
+export async function getGlobalStats(supabase: SupabaseClient): Promise<GlobalStats> {
+  const { data: totalStats, error: totalError } = await supabase
     .from("cases")
     .select("type, rating")
     .eq("workflow_status", "published")
@@ -29,11 +26,10 @@ export async function getGlobalStats(): Promise<GlobalStats> {
   }
 }
 
-export async function getSparklineData(): Promise<TimelineData[]> {
-  const supabase = await createServerClient()
+export async function getSparklineData(supabase: SupabaseClient): Promise<TimelineData[]> {
   const sevenDaysAgo = format(subDays(new Date(), 7), 'yyyy-MM-dd')
 
-  const { data: cases, error } = await (supabase as SupabaseClient)
+  const { data: cases, error } = await supabase
     .from("cases")
     .select("type, published_at")
     .eq("workflow_status", "published")
@@ -65,10 +61,8 @@ export async function getSparklineData(): Promise<TimelineData[]> {
   }))
 }
 
-export async function getTopFirms(limit: number = 5): Promise<TopFirm[]> {
-  const supabase = await createServerClient()
-
-  const { data, error } = await (supabase as SupabaseClient)
+export async function getTopFirms(supabase: SupabaseClient, limit: number = 5): Promise<TopFirm[]> {
+  const { data, error } = await supabase
     .from("firms")
     .select(`
       id,
@@ -104,9 +98,8 @@ export async function getTopFirms(limit: number = 5): Promise<TopFirm[]> {
   })
 }
 
-export async function getRatingDistribution(): Promise<RatingDistribution[]> {
-  const supabase = await createServerClient()
-  const { data: cases, error } = await (supabase as SupabaseClient)
+export async function getRatingDistribution(supabase: SupabaseClient): Promise<RatingDistribution[]> {
+  const { data: cases, error } = await supabase
     .from("cases")
     .select("rating")
     .eq("workflow_status", "published")
