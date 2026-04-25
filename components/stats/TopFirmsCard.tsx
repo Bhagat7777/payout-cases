@@ -14,7 +14,7 @@ const renderStars = (rating: number) => {
   ))
 }
 
-export function TopFirmsCard({ firms, onExport }: { firms: TopFirm[]; onExport: () => void }) {
+export function TopFirmsCard({ firms, onExport }: { firms: TopFirm[]; onExport?: () => void }) {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
       <Card className="bg-white/80 backdrop-blur-sm border border-gray-200/50">
@@ -24,10 +24,12 @@ export function TopFirmsCard({ firms, onExport }: { firms: TopFirm[]; onExport: 
               <Award className="w-5 h-5" />
               <span>Top Firms (30d)</span>
             </CardTitle>
-            <Button variant="outline" size="sm" onClick={onExport} className="flex items-center space-x-2">
-              <Download className="w-4 h-4" />
-              <span>CSV</span>
-            </Button>
+            {onExport && (
+              <Button variant="outline" size="sm" onClick={onExport} className="flex items-center space-x-2">
+                <Download className="w-4 h-4" />
+                <span>CSV</span>
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
