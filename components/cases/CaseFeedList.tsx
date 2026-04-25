@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
@@ -13,6 +14,7 @@ import {
   Loader2,
   Star,
   Building2,
+  Bell,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -22,6 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useCaseFeed, Case, CaseType, TimePeriod } from "@/hooks/use-case-feed";
+import { sendBrowserNotification, requestNotificationPermission } from "@/hooks/use-realtime-cases";
 
 interface CaseFeedListProps {
   type: CaseType;
@@ -75,6 +78,14 @@ export function CaseFeedList({ type }: CaseFeedListProps) {
     sortBy,
     setSortBy,
   } = useCaseFeed(type);
+
+  // Enable real-time notifications
+  useEffect(() => {
+    // Request notification permission on mount
+    requestNotificationPermission().catch(() => {
+      // Silently fail - notifications not critical
+    });
+  }, []);
 
   if (error) {
     return (
