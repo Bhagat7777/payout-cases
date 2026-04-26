@@ -45,6 +45,11 @@ export function Navbar() {
                 Sign In
               </Button>
             </Link>
+            <Link href="/auth/sign-up">
+              <Button className="bg-gradient-to-r from-[#7C5CFF] to-[#00D1B2] hover:opacity-90 text-white">
+                Sign Up
+              </Button>
+            </Link>
           </div>
 
           <button className="md:hidden text-[#E6E7EB]" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -80,6 +85,11 @@ export function Navbar() {
                   className="w-full border-gray-600 text-gray-300 hover:bg-gray-700 bg-transparent"
                 >
                   Sign In
+                </Button>
+              </Link>
+              <Link href="/auth/sign-up">
+                <Button className="w-full bg-gradient-to-r from-[#7C5CFF] to-[#00D1B2] hover:opacity-90 text-white">
+                  Sign Up
                 </Button>
               </Link>
             </div>
